@@ -252,6 +252,9 @@ class NTXentLoss(nn.Module):
     Normalized Temperature-scaled Cross Entropy Loss for contrastive learning.
     """
     
+    # Mask value for excluding self-similarity
+    MASK_VALUE = -9e15
+    
     def __init__(self, temperature: float = 0.07):
         """
         Initialize NT-Xent loss.
@@ -283,7 +286,7 @@ class NTXentLoss(nn.Module):
         
         # Create mask to exclude self-similarity
         mask = torch.eye(2 * batch_size, dtype=torch.bool, device=z.device)
-        similarity_matrix = similarity_matrix.masked_fill(mask, -9e15)
+        similarity_matrix = similarity_matrix.masked_fill(mask, self.MASK_VALUE)
         
         # Scale by temperature
         similarity_matrix = similarity_matrix / self.temperature

@@ -63,7 +63,8 @@ class ContrastiveTrainer:
         train_loader: DataLoader,
         contrastive_loss_fn: Callable,
         variant_loss_fn: Optional[Callable] = None,
-        variant_weight: float = 0.5
+        variant_weight: float = 0.5,
+        log_interval: int = 10
     ) -> Dict[str, float]:
         """
         Train for one epoch.
@@ -73,6 +74,7 @@ class ContrastiveTrainer:
             contrastive_loss_fn: Loss function for contrastive learning
             variant_loss_fn: Optional loss function for variant detection
             variant_weight: Weight for variant detection loss
+            log_interval: Number of batches between logging updates
             
         Returns:
             Dictionary with training metrics
@@ -126,7 +128,7 @@ class ContrastiveTrainer:
             num_batches += 1
             
             # Log progress
-            if batch_idx % 10 == 0:
+            if batch_idx % log_interval == 0:
                 print(f"Batch {batch_idx}/{len(train_loader)}, Loss: {loss.item():.4f}")
         
         epoch_time = time.time() - start_time

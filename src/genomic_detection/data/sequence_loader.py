@@ -123,6 +123,9 @@ class SequenceDataLoader:
             
         Returns:
             List of GenomicSequence objects
+            
+        Raises:
+            FileNotFoundError: If FASTA file does not exist
         """
         sequences = []
         current_id = ""
@@ -150,7 +153,7 @@ class SequenceDataLoader:
                         GenomicSequence(''.join(current_seq), sample_id=current_id)
                     )
         except FileNotFoundError:
-            print(f"Warning: FASTA file not found at {fasta_path}")
+            raise FileNotFoundError(f"FASTA file not found at {fasta_path}")
             
         return sequences
     

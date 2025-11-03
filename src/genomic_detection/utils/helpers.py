@@ -266,7 +266,8 @@ def create_synthetic_variants(
 
 def save_sequences_to_fasta(
     sequences: List[Tuple[str, str]],
-    output_path: str
+    output_path: str,
+    line_length: int = 80
 ):
     """
     Save sequences to a FASTA file.
@@ -274,11 +275,12 @@ def save_sequences_to_fasta(
     Args:
         sequences: List of (id, sequence) tuples
         output_path: Path to output FASTA file
+        line_length: Maximum characters per line for sequence data
     """
     with open(output_path, 'w') as f:
         for seq_id, sequence in sequences:
             f.write(f">{seq_id}\n")
-            # Write sequence in lines of 80 characters
-            for i in range(0, len(sequence), 80):
-                f.write(sequence[i:i+80] + "\n")
+            # Write sequence in lines of specified length
+            for i in range(0, len(sequence), line_length):
+                f.write(sequence[i:i+line_length] + "\n")
     print(f"Saved {len(sequences)} sequences to {output_path}")
