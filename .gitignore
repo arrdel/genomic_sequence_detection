@@ -1,0 +1,149 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Model checkpoints and weights (LARGE FILES)
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.pkl
+*.pickle
+
+# Training outputs
+outputs/
+logs/
+runs/
+
+# Weights & Biases
+wandb/
+*.wandb
+
+# Data files (LARGE FILES)
+*.fastq
+*.fastq.gz
+*.fasta
+*.fasta.gz
+*.fa
+*.fa.gz
+*.fq
+*.fq.gz
+*.bam
+*.sam
+*.vcf
+*.bed
+
+# K-mer batches
+k_mer batches/
+*.npy
+
+# FastQC outputs
+fastqc_before/
+fastqc_after/
+*_fastqc.html
+*_fastqc.zip
+
+# Trimmomatic outputs
+cleaned_reads*
+*.log
+
+# Evaluation results
+evaluation_results/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*~
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Large binary files
+*.bin
+*.dat
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentation builds
+docs/_build/
+site/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Environment variables
+.env
+.env.local
+
+# Keep empty directories (optional)
+!.gitkeep
+
+# Specific to your project
+Trimmomatic/*.jar
+wastewater_seq_dataset.fastq

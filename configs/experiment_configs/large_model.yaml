@@ -1,0 +1,23 @@
+# Example Experiment Configuration
+# Override default settings for a specific experiment
+
+# This experiment uses a larger model with more codebook vectors
+
+# Inherit from default config
+_base_: ../default_config.yaml
+
+# Model Configuration (overrides)
+model:
+  num_codes: 1024  # Increased from 512
+  code_dim: 128    # Increased from 64
+  hidden_dim: 512  # Increased from 256
+
+# Training Configuration (overrides)
+training:
+  epochs: 200  # Train longer
+  batch_size: 32  # Smaller batch due to larger model
+  learning_rate: 0.0001  # Lower learning rate
+
+# Logging Configuration (overrides)
+logging:
+  experiment_name: "vqvae_large_model"

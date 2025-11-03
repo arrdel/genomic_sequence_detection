@@ -1,0 +1,52 @@
+# VQ-VAE Default Configuration
+# This file contains default hyperparameters for training the VQ-VAE model
+
+# Data Configuration
+data:
+  data_path: "/home/adelechinda/home/semester_projects/fall_25/deep_learning/project/cleaned_reads.fastq"
+  max_seq_length: 150
+  k_mer: 6
+  use_canonical: true
+
+# Model Configuration
+model:
+  vocab_size: 4097  # 4^6 + 1 for PAD token
+  num_codes: 512
+  code_dim: 64
+  embed_dim: 128
+  hidden_dim: 256
+  commitment_cost: 0.25
+
+# Training Configuration
+training:
+  epochs: 100
+  batch_size: 64
+  learning_rate: 0.0002  # 2e-4
+  num_workers: 4
+  recon_loss_weight: 1.0
+  save_freq: 1  # Save checkpoint every N epochs
+  log_freq: 100  # Log metrics every N batches
+
+# GPU Configuration
+gpu:
+  n_gpu: 1
+  gpu_ids: null  # Comma-separated GPU IDs, e.g., "0,1,2"
+  no_cuda: false
+
+# Checkpoint Configuration
+checkpoint:
+  resume: null  # Path to checkpoint to resume from
+  save_dir: "./checkpoints"
+
+# Logging Configuration
+logging:
+  output_dir: "./outputs"
+  log_dir: "./logs"
+  wandb_project: "vqvae-genomics"
+  experiment_name: null  # Auto-generated if null
+  no_wandb: false
+
+# Evaluation Configuration
+evaluation:
+  eval_batches: 100
+  eval_samples_per_batch: 3
