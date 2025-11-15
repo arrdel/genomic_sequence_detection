@@ -4,6 +4,9 @@ VQ-VAE Evaluation Script for Viral Genome Sequences
 
 Usage:
     python evaluate.py --checkpoint-path ./checkpoints/checkpoint_epoch_100.pt --data-path /path/to/data
+    
+    
+    python scripts/evaluate.py --checkpoint-path outputs/vqvae_taining_1/checkpoint_epoch_6.pt --data-path /home/adelechinda/home/semester_projects/fall_25/deep_learning/project/cleaned_reads.fastq;
 """
 
 import os
@@ -34,7 +37,7 @@ def parse_args():
                         help='Path to model checkpoint')
     parser.add_argument('--data-path', type=str, required=True,
                         help='Path to the FASTQ file')
-    parser.add_argument('--output-dir', type=str, default='./evaluation_results',
+    parser.add_argument('--output-dir', type=str, default='./evaluation_results2',
                         help='Directory to save evaluation results')
     parser.add_argument('--max-seq-length', type=int, default=150,
                         help='Maximum sequence length')
@@ -293,6 +296,10 @@ def main():
     num_batches = min(args.num_eval_batches, len(all_batches))
     random_batches = random.sample(all_batches, num_batches)
     
+    # Show a few examples in console as well
+    console_examples_shown = 0
+    max_console_examples = 5
+    
     with open(reconstruction_file, 'w') as f:
         for batch_idx, (batch_tokens, batch_lengths) in enumerate(tqdm(random_batches)):
             examples = reconstruct_and_decode(model, batch_tokens, batch_lengths, tokenizer, device)
@@ -312,8 +319,18 @@ def main():
                 match_rate = sum(a==b for a,b in zip(in_seq[:120], pred_seq[:120]))/max(1, len(in_seq[:120]))
                 example_text += f"Match rate: {match_rate:.2%}\n\n"
                 
+                # Write to file
                 f.write(example_text)
+                
+                # Also print first few examples to console
+                if console_examples_shown < max_console_examples:
+                    print(f"\nBatch {batch_idx + 1}, Example {sample_idx + 1}:")
+                    print(f"  Input:  {in_seq[:120]}")
+                    print(f"  Recon:  {pred_seq[:120]}")
+                    print(f"  Match:  {match_rate:.2%}")
+                    console_examples_shown += 1
     
+    print(f"\nTotal reconstruction examples generated: {num_batches * args.num_samples_per_batch}")
     print(f"Reconstruction examples saved to: {reconstruction_file}")
     
     # 4. Save all results

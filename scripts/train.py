@@ -4,6 +4,14 @@ VQ-VAE Training Script for Viral Genome Sequences
 
 Usage:
     python -u train.py --data-path /path/to/data --output-dir ./outputs --n-gpu 2 --batch-size 64 --epochs 100
+    
+    python -u scripts/train.py \
+  --data-path /home/adelechinda/home/semester_projects/fall_25/deep_learning/project/cleaned_reads.fastq \
+  --output-dir ./outputs \
+  --experiment-name vqvae_train2 \
+  --n-gpu 4 \
+  --batch-size 64 \
+  --epochs 10
 """
 
 import os
@@ -60,7 +68,7 @@ def parse_args():
                         help='Number of training epochs')
     parser.add_argument('--batch-size', type=int, default=64,
                         help='Training batch size')
-    parser.add_argument('--learning-rate', '--lr', type=float, default=2e-4,
+    parser.add_argument('--learning-rate', '--lr', type=float, default=1e-4,
                         help='Learning rate')
     parser.add_argument('--num-workers', type=int, default=4,
                         help='Number of data loading workers')
@@ -97,6 +105,16 @@ def parse_args():
     parser.add_argument('--eval-samples-per-batch', type=int, default=3,
                         help='Number of samples per batch for reconstruction eval')
     
+    # Dead code refresh arguments
+    parser.add_argument('--refresh-codes', action='store_true',
+                        help='Enable dead code refresh mechanism')
+    parser.add_argument('--refresh-interval', type=int, default=500,
+                        help='Refresh dead codes every N batches')
+    parser.add_argument('--refresh-buffer-size', type=int, default=10000,
+                        help='Size of encoder output buffer for code refresh')
+    parser.add_argument('--refresh-min-count', type=int, default=5,
+                        help='Minimum EMA count threshold for dead codes')
+    
     args = parser.parse_args()
     return args
 
@@ -125,10 +143,42 @@ def collate_fn(batch):
     return tokens, lengths
 
 
-def train_one_epoch(model, dataloader, optimizer, device, pad_id, args, epoch):
-    """Train for one epoch"""
+def refresh_dead_codes(vq, z_buffer, min_count=5):
+    """
+    Reactivate dead codebook entries that are not being used.
+    
+    Args:
+        vq: VectorQuantizerEMA instance (model.vq)
+        z_buffer: torch.Tensor of recent encoder outputs (N, D)
+        min_count: codes with EMA count below this threshold get refreshed
+    """
+    with torch.no_grad():
+        dead = (vq.ema_cluster_size < min_count)
+        if dead.any():
+            k = dead.nonzero(as_tuple=False).flatten()
+            z_samples = z_buffer[torch.randint(0, z_buffer.size(0), (k.numel(),))]
+            vq.embedding.weight.data[k] = z_samples
+            vq.ema_w[k] = z_samples
+            vq.ema_cluster_size[k] = min_count
+            print(f"🔄 Refreshed {k.numel()} dead codes")
+
+
+def train_one_epoch(model, dataloader, optimizer, device, pad_id, args, epoch, 
+                    refresh_codes=False, refresh_interval=500, buffer_size=10000):
+    """
+    Train for one epoch
+    
+    Args:
+        refresh_codes: Enable dead code refresh mechanism
+        refresh_interval: Refresh dead codes every N batches
+        buffer_size: Size of encoder output buffer for code refresh
+    """
     model.train()
     total_loss, total_recon, total_vq, n_tokens = 0, 0, 0, 0
+    
+    # Buffer for collecting encoder outputs (for dead code refresh)
+    z_buffer = [] if refresh_codes else None
+    max_buffer_size = buffer_size
 
     for batch_idx, (batch_tokens, batch_lengths) in enumerate(dataloader):
         batch_tokens = batch_tokens.to(device)
@@ -139,22 +189,38 @@ def train_one_epoch(model, dataloader, optimizer, device, pad_id, args, epoch):
         # Forward pass
         logits, loss_vq, codes = model(batch_tokens)
         B, L, V = logits.shape
+        
+        # Collect encoder outputs for dead code refresh
+        if refresh_codes and z_buffer is not None:
+            # Get encoder outputs (before quantization)
+            with torch.no_grad():
+                # Access encoder through DataParallel if needed
+                if hasattr(model, 'module'):
+                    z_e = model.module.encoder(batch_tokens)
+                else:
+                    z_e = model.encoder(batch_tokens)
+                # Flatten to (B*L, D) and store
+                z_buffer.append(z_e.reshape(-1, z_e.size(-1)).cpu())
+                # Keep buffer size manageable
+                if len(z_buffer) > max_buffer_size // B:
+                    z_buffer.pop(0)
 
         # Prevent model from predicting PAD tokens
-        logits[:, :, pad_id] = float('-inf')
+        logits[:, :, pad_id] = -1e9
 
         # Create mask based on sequence lengths
-        mask = torch.arange(L, device=device)[None, :] < batch_lengths[:, None]
-        mask = mask & (batch_tokens != pad_id)
+        valid_mask = torch.arange(L, device=device)[None, :] < batch_lengths[:, None]
+        valid_mask = valid_mask & (batch_tokens != pad_id)
 
-        # Flatten for loss calculation
-        logits_flat = logits[mask]
-        targets_flat = batch_tokens[mask]
-
-        if logits_flat.size(0) == 0:
+        if valid_mask.sum() == 0:
             continue
 
-        recon_loss = F.cross_entropy(logits_flat, targets_flat)
+        # ---- Step 3: Balanced CE loss over valid tokens ----
+        logits_flat = logits[valid_mask]           # (N_valid, V)
+        targets_flat = batch_tokens[valid_mask]     # (N_valid,)
+        ce = F.cross_entropy(logits_flat, targets_flat, reduction="sum")
+        n_valid = valid_mask.sum().clamp_min(1)
+        recon_loss = ce / n_valid                   # normalize by token count
         
         # Handle DataParallel: loss_vq may be a vector if using multiple GPUs
         if loss_vq.dim() > 0:
@@ -166,11 +232,11 @@ def train_one_epoch(model, dataloader, optimizer, device, pad_id, args, epoch):
         optimizer.step()
 
         # Update statistics
-        n_valid = targets_flat.size(0)
-        total_loss += loss.item() * n_valid
-        total_recon += recon_loss.item() * n_valid
-        total_vq += loss_vq.item() * n_valid
-        n_tokens += n_valid
+        n_valid_count = n_valid.item()
+        total_loss += loss.item() * n_valid_count
+        total_recon += recon_loss.item() * n_valid_count
+        total_vq += loss_vq.item() * n_valid_count
+        n_tokens += n_valid_count
 
         # Log to wandb periodically
         if not args.no_wandb and batch_idx % args.log_freq == 0:
@@ -185,6 +251,15 @@ def train_one_epoch(model, dataloader, optimizer, device, pad_id, args, epoch):
                 "batch_vq_loss": batch_vq,
                 "global_step": epoch * len(dataloader) + batch_idx
             })
+        
+        # Refresh dead codes periodically
+        if refresh_codes and batch_idx % refresh_interval == 0 and len(z_buffer) > 0:
+            z_concat = torch.cat(z_buffer, dim=0).to(device)
+            # Access VQ layer through DataParallel if needed
+            if hasattr(model, 'module'):
+                refresh_dead_codes(model.module.vq, z_concat, min_count=args.refresh_min_count)
+            else:
+                refresh_dead_codes(model.vq, z_concat, min_count=args.refresh_min_count)
 
         # Free up memory
         del logits, loss_vq, codes, loss
@@ -292,6 +367,7 @@ def main():
         commitment_cost=args.commitment_cost
     )
     
+    
     # Multi-GPU support
     if len(gpu_ids) > 1:
         model = nn.DataParallel(model, device_ids=gpu_ids)
@@ -347,7 +423,12 @@ def main():
     # Training loop
     for epoch in range(start_epoch, args.epochs + 1):
         try:
-            stats = train_one_epoch(model, dataloader, optimizer, device, PAD_ID, args, epoch)
+            stats = train_one_epoch(
+                model, dataloader, optimizer, device, PAD_ID, args, epoch,
+                refresh_codes=args.refresh_codes,
+                refresh_interval=args.refresh_interval,
+                buffer_size=args.refresh_buffer_size
+            )
             
             # Log metrics
             if not args.no_wandb:
@@ -398,3 +479,31 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+# #* TODO: implement sequence shuffling on original dataset, 
+# #* TODO:  run original sequences- cleaned_reads on k2minusb, 
+# # TODO:  do contrastive learning to reconstruct shuffled sequences, 
+# # TODO:  test contrastive sequences on kraken
+
+
+#* 4 models: VQVAE(base Vector Quantizer), VQVAE(EMA Vector Quantizer), Masked VQVAE, Contrastive VQVAE.
+
+# TODO: Accuracy on 4 approaches
+# TODO: Latent space cluster analysis
+
+
+
+""""
+- Implement evaluation VQVAE
+- Implement masked VQVAE, run evaluation on it as well
+- Implement latent space visualization for various grouping in latent space.
+- Run contrastive on covid dataset
+- Compare results on three methods
+- Literature writing
+- Poster design
+"""

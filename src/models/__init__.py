@@ -11,3 +11,5 @@ This module contains the VQ-VAE model architecture including:
 from .vqvae import VQVAE, VectorQuantizer, Encoder, Decoder
 
 __all__ = ['VQVAE', 'VectorQuantizer', 'Encoder', 'Decoder']
+
+

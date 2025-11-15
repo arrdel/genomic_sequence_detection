@@ -43,13 +43,20 @@ checkpoints/
 *.pth
 *.ckpt
 *.h5
+*.hdf5
 *.pkl
 *.pickle
+*.model
+*.weights
+*.safetensors
 
 # Training outputs
 outputs/
 logs/
 runs/
+experiments/
+results/
+saved_models/
 
 # Weights & Biases
 wandb/
@@ -67,11 +74,29 @@ wandb/
 *.bam
 *.sam
 *.vcf
+*.vcf.gz
 *.bed
+*.bed.gz
+*.gff
+*.gff3
+*.gtf
+*.csv
+*.tsv
+*.parquet
+*.arrow
+*.feather
 
-# K-mer batches
+# K-mer batches and numpy arrays
 k_mer batches/
 *.npy
+*.npz
+
+# Large text/data files
+*.txt.gz
+*.json.gz
+*.xml.gz
+sequence_classification/
+virus_sequences.*
 
 # FastQC outputs
 fastqc_before/
@@ -85,6 +110,7 @@ cleaned_reads*
 
 # Evaluation results
 evaluation_results/
+trash/
 
 # macOS
 .DS_Store
@@ -111,17 +137,36 @@ $RECYCLE.BIN/
 # Compressed files
 *.zip
 *.tar.gz
+*.tar
 *.rar
 *.7z
+*.gz
+*.bz2
+*.xz
 
 # Large binary files
 *.bin
 *.dat
+*.db
+*.sqlite
+*.sqlite3
+
+# Image/Video files (if used for visualization)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.mp4
+*.avi
+*.mov
 
 # Temporary files
 tmp/
 temp/
 *.tmp
+*.cache
 
 # Documentation builds
 docs/_build/
@@ -147,3 +192,31 @@ dmypy.json
 # Specific to your project
 Trimmomatic/*.jar
 wastewater_seq_dataset.fastq
+sample_data.txt
+shuffled_*.fastq
+*_shuffled.fastq
+
+# Kraken/classification outputs
+kraken_output/
+kraken_report.txt
+kraken_classification.txt
+k2_minusb/
+k2_*/
+kraken2_db/
+kraken_db/
+
+# Evaluation results
+evaluation_results/
+evaluation_results*/
+
+# Keep these small files (exceptions)
+!sample_data.txt
+!README.md
+!requirements.txt
+!.gitkeep
+
+# Large model files
+*.onnx
+*.pb
+*.tflite
+*.mlmodel
