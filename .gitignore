@@ -38,6 +38,10 @@ env/
 *.ipynb
 
 # Model checkpoints and weights (LARGE FILES)
+# Keep directory structure but ignore checkpoint files
+experiments/*/checkpoints/*.pt
+experiments/*/checkpoints/*.pth
+experiments/*/checkpoints/*.ckpt
 checkpoints/
 *.pt
 *.pth
@@ -51,10 +55,15 @@ checkpoints/
 *.safetensors
 
 # Training outputs
+# Keep experiment structure but ignore large files
+experiments/*/logs/*.log
+experiments/*/logs/*.txt
+experiments/*/results/*.npy
+experiments/*/results/*.png
+experiments/*/results/*.json
 outputs/
 logs/
 runs/
-experiments/
 results/
 saved_models/
 
