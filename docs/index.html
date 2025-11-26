@@ -55,14 +55,6 @@
       scroll-behavior: smooth;
     }
 
-    figure.image {
-      transition: transform 0.3s ease;
-    }
-
-    figure.image:hover {
-      transform: scale(1.02);
-    }
-
     code {
       background-color: #f5f5f5;
       padding: 2px 6px;
@@ -145,23 +137,6 @@
 
     .table {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .content img {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .content img:hover {
-      transform: scale(1.02);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    }
-
-    #adobe-dc-view {
-      min-height: 800px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
 
     .pdf-container {
@@ -250,6 +225,16 @@
                       <i class="fas fa-chart-line"></i>
                     </span>
                     <span>W&B Logs</span>
+                  </a>
+                </span>
+                <!-- Google Slides link -->
+                <span class="link-block">
+                  <a href="https://docs.google.com/presentation/d/1PDNrMdP7XP-Nsu4ky4-fKPafyjr1P7agbxPLadzacz8/edit?slide=id.p#slide=id.p"
+                    target="_blank" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-chalkboard-teacher"></i>
+                    </span>
+                    <span>Slides</span>
                   </a>
                 </span>
               </div>
@@ -1246,27 +1231,13 @@ python scripts/train.py \
             </p>
 
             <div class="pdf-container">
-              <div id="adobe-dc-view"></div>
-
-              <script type="text/javascript">
-                document.addEventListener("adobe_dc_view_sdk.ready", function () {
-                  var adobeDCView = new AdobeDC.View({
-                    clientId: "YOUR_CLIENT_ID",
-                    divId: "adobe-dc-view"
-                  });
-                  adobeDCView.previewFile({
-                    content: { location: { url: "static/pdfs/poster.pdf" } },
-                    metaData: { fileName: "VQ-VAE_Genomics_Poster.pdf" }
-                  }, {
-                    embedMode: "SIZED_CONTAINER",
-                    defaultViewMode: "FIT_WIDTH",
-                    showDownloadPDF: true,
-                    showPrintPDF: true,
-                    showLeftHandPanel: false,
-                    showAnnotationTools: false
-                  });
-                });
-              </script>
+              <!-- PDF embed using object element to prevent auto-download -->
+              <object data="static/pdfs/poster.pdf" type="application/pdf" width="100%" height="800px"
+                style="border: 1px solid #e0e0e0; border-radius: 8px;">
+                <p>Your browser does not support inline PDF viewing.
+                  <a href="static/pdfs/poster.pdf" target="_blank">Click here to view the poster in a new tab</a>.
+                </p>
+              </object>
             </div>
           </div>
         </div>
