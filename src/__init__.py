@@ -12,7 +12,8 @@ This package provides:
 
 __version__ = "0.1.0"
 
-from .models import VQVAE, VectorQuantizer, Encoder, Decoder
+# from .models import VQVAE, VectorQuantizer, Encoder, Decoder
+from .models import VQVAE, Encoder, Decoder
 from .data import KmerTokenizer, FastqKmerDataset
 from .utils import init_wandb, log_metrics, finish_run
 
