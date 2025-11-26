@@ -122,7 +122,7 @@
 
     /* Enhanced styles */
     .publication-title {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: black;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -173,7 +173,7 @@
 
     .section-divider {
       height: 4px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      background: black;
       border: none;
       margin: 3rem auto;
       max-width: 200px;
@@ -468,15 +468,7 @@ ATCGAT → Token 1234
 # Final tokenized sequence (length 150)
 [1234, 2341, 3412, 4123, ..., 4096, 4096]  # PAD tokens at end</code></pre>
 
-            <!-- Preprocessing visualization placeholder -->
-            <div class="placeholder-box">
-              <div class="placeholder-icon">📊</div>
-              <div class="placeholder-text">
-                <strong>PLACEHOLDER:</strong> Quality score distribution before/after preprocessing<br>
-                (FastQC-style plots showing improvement in read quality)<br>
-                Typical improvement: Mean Phred score 28→35, Q20 bases 85%→97%
-              </div>
-            </div>
+
 
             <h3 class="title is-4">Usage Example</h3>
             <p>Run the complete preprocessing pipeline:</p>
@@ -1243,7 +1235,7 @@ python scripts/train.py \
 
   <!-- Poster Section -->
   <section class="section hero is-light">
-    <div class="container is-max-desktop">
+    <div class="container" style="max-width: 1400px;">
       <div class="columns is-centered">
         <div class="column is-full-width">
           <h2 class="title is-3 has-text-centered">Project Poster</h2>
@@ -1275,15 +1267,6 @@ python scripts/train.py \
                   });
                 });
               </script>
-
-              <div class="has-text-centered" style="margin-top: 1.5rem;">
-                <a href="static/pdfs/poster.pdf" download class="button is-primary is-medium">
-                  <span class="icon">
-                    <i class="fas fa-download"></i>
-                  </span>
-                  <span>Download Poster (PDF)</span>
-                </a>
-              </div>
             </div>
           </div>
         </div>
@@ -1302,7 +1285,6 @@ python scripts/train.py \
             <p>
               This project was completed as part of the Deep Learning course at Georgia State University.
               We thank our instructors and peers for their valuable feedback and support throughout this work.
-              We also acknowledge the use of computational resources provided by GSU High Performance Computing.
             </p>
           </div>
         </div>

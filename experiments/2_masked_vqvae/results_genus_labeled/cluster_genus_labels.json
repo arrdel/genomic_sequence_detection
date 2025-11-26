@@ -1,0 +1,931 @@
+{
+  "cluster_labels": {
+    "0": {
+      "name": "C0: Aeromonas",
+      "short_name": "Aeromonas",
+      "size": 1472,
+      "num_classified": 224,
+      "num_unclassified": 1248,
+      "classification_rate": 0.15217391304347827,
+      "top_genera": [
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 40,
+          "percentage": 2.717391304347826,
+          "percentage_of_classified": 17.857142857142858
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 28,
+          "percentage": 1.9021739130434783,
+          "percentage_of_classified": 12.5
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 27,
+          "percentage": 1.8342391304347827,
+          "percentage_of_classified": 12.053571428571429
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 13,
+          "percentage": 0.8831521739130435,
+          "percentage_of_classified": 5.803571428571429
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 12,
+          "percentage": 0.8152173913043478,
+          "percentage_of_classified": 5.357142857142857
+        },
+        {
+          "taxid": 106589,
+          "name": "Cupriavidus",
+          "rank": "G",
+          "count": 12,
+          "percentage": 0.8152173913043478,
+          "percentage_of_classified": 5.357142857142857
+        },
+        {
+          "taxid": 286,
+          "name": "Pseudomonas",
+          "rank": "G",
+          "count": 7,
+          "percentage": 0.47554347826086957,
+          "percentage_of_classified": 3.125
+        },
+        {
+          "taxid": 2,
+          "name": "Bacteria",
+          "rank": "R2",
+          "count": 7,
+          "percentage": 0.47554347826086957,
+          "percentage_of_classified": 3.125
+        },
+        {
+          "taxid": 2892397,
+          "name": "Pusillibacter",
+          "rank": "G",
+          "count": 6,
+          "percentage": 0.4076086956521739,
+          "percentage_of_classified": 2.6785714285714284
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.33967391304347827,
+          "percentage_of_classified": 2.232142857142857
+        }
+      ],
+      "num_unique_genera": 49,
+      "entropy": 4.501679364336439
+    },
+    "1": {
+      "name": "C1: Aeromonas",
+      "short_name": "Aeromonas",
+      "size": 917,
+      "num_classified": 110,
+      "num_unclassified": 807,
+      "classification_rate": 0.11995637949836423,
+      "top_genera": [
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 18,
+          "percentage": 1.9629225736095965,
+          "percentage_of_classified": 16.363636363636363
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 8,
+          "percentage": 0.8724100327153762,
+          "percentage_of_classified": 7.2727272727272725
+        },
+        {
+          "taxid": 2,
+          "name": "Bacteria",
+          "rank": "R2",
+          "count": 7,
+          "percentage": 0.7633587786259542,
+          "percentage_of_classified": 6.363636363636363
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 7,
+          "percentage": 0.7633587786259542,
+          "percentage_of_classified": 6.363636363636363
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 6,
+          "percentage": 0.6543075245365322,
+          "percentage_of_classified": 5.454545454545454
+        },
+        {
+          "taxid": 816,
+          "name": "Bacteroides",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.5452562704471101,
+          "percentage_of_classified": 4.545454545454546
+        },
+        {
+          "taxid": 32008,
+          "name": "Burkholderia",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.5452562704471101,
+          "percentage_of_classified": 4.545454545454546
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.5452562704471101,
+          "percentage_of_classified": 4.545454545454546
+        },
+        {
+          "taxid": 286,
+          "name": "Pseudomonas",
+          "rank": "G",
+          "count": 4,
+          "percentage": 0.4362050163576881,
+          "percentage_of_classified": 3.6363636363636362
+        },
+        {
+          "taxid": 694002,
+          "name": "Betacoronavirus",
+          "rank": "G",
+          "count": 3,
+          "percentage": 0.3271537622682661,
+          "percentage_of_classified": 2.727272727272727
+        }
+      ],
+      "num_unique_genera": 37,
+      "entropy": 4.649771051040816
+    },
+    "2": {
+      "name": "C2: Aeromonas",
+      "short_name": "Aeromonas",
+      "size": 1513,
+      "num_classified": 226,
+      "num_unclassified": 1287,
+      "classification_rate": 0.14937210839391937,
+      "top_genera": [
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 38,
+          "percentage": 2.511566424322538,
+          "percentage_of_classified": 16.8141592920354
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 33,
+          "percentage": 2.1810971579643095,
+          "percentage_of_classified": 14.601769911504425
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 24,
+          "percentage": 1.5862524785194976,
+          "percentage_of_classified": 10.619469026548673
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 18,
+          "percentage": 1.1896893588896233,
+          "percentage_of_classified": 7.964601769911504
+        },
+        {
+          "taxid": 106589,
+          "name": "Cupriavidus",
+          "rank": "G",
+          "count": 13,
+          "percentage": 0.8592200925313945,
+          "percentage_of_classified": 5.752212389380531
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 11,
+          "percentage": 0.7270323859881032,
+          "percentage_of_classified": 4.867256637168142
+        },
+        {
+          "taxid": 2,
+          "name": "Bacteria",
+          "rank": "R2",
+          "count": 10,
+          "percentage": 0.6609385327164574,
+          "percentage_of_classified": 4.424778761061947
+        },
+        {
+          "taxid": 2892396,
+          "name": "Vescimonas",
+          "rank": "G",
+          "count": 6,
+          "percentage": 0.3965631196298744,
+          "percentage_of_classified": 2.6548672566371683
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.3304692663582287,
+          "percentage_of_classified": 2.2123893805309733
+        },
+        {
+          "taxid": 91347,
+          "name": "Enterobacterales",
+          "rank": "O",
+          "count": 5,
+          "percentage": 0.3304692663582287,
+          "percentage_of_classified": 2.2123893805309733
+        }
+      ],
+      "num_unique_genera": 45,
+      "entropy": 4.394907490979229
+    },
+    "3": {
+      "name": "C3: Streptomyces",
+      "short_name": "Streptomyces",
+      "size": 120,
+      "num_classified": 13,
+      "num_unclassified": 107,
+      "classification_rate": 0.10833333333333334,
+      "top_genera": [
+        {
+          "taxid": 1883,
+          "name": "Streptomyces",
+          "rank": "G",
+          "count": 2,
+          "percentage": 1.6666666666666667,
+          "percentage_of_classified": 15.384615384615385
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 2,
+          "percentage": 1.6666666666666667,
+          "percentage_of_classified": 15.384615384615385
+        },
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 2,
+          "percentage": 1.6666666666666667,
+          "percentage_of_classified": 15.384615384615385
+        },
+        {
+          "taxid": 338,
+          "name": "Xanthomonas",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.8333333333333334,
+          "percentage_of_classified": 7.6923076923076925
+        },
+        {
+          "taxid": 286,
+          "name": "Pseudomonas",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.8333333333333334,
+          "percentage_of_classified": 7.6923076923076925
+        },
+        {
+          "taxid": 191,
+          "name": "Azospirillum",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.8333333333333334,
+          "percentage_of_classified": 7.6923076923076925
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 1,
+          "percentage": 0.8333333333333334,
+          "percentage_of_classified": 7.6923076923076925
+        },
+        {
+          "taxid": 34072,
+          "name": "Variovorax",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.8333333333333334,
+          "percentage_of_classified": 7.6923076923076925
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.8333333333333334,
+          "percentage_of_classified": 7.6923076923076925
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.8333333333333334,
+          "percentage_of_classified": 7.6923076923076925
+        }
+      ],
+      "num_unique_genera": 10,
+      "entropy": 3.238901256602631
+    },
+    "4": {
+      "name": "C4: Aeromonas",
+      "short_name": "Aeromonas",
+      "size": 1596,
+      "num_classified": 237,
+      "num_unclassified": 1359,
+      "classification_rate": 0.14849624060150377,
+      "top_genera": [
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 44,
+          "percentage": 2.756892230576441,
+          "percentage_of_classified": 18.565400843881857
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 39,
+          "percentage": 2.443609022556391,
+          "percentage_of_classified": 16.455696202531644
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 20,
+          "percentage": 1.2531328320802004,
+          "percentage_of_classified": 8.438818565400844
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 11,
+          "percentage": 0.6892230576441103,
+          "percentage_of_classified": 4.641350210970464
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 8,
+          "percentage": 0.5012531328320802,
+          "percentage_of_classified": 3.3755274261603376
+        },
+        {
+          "taxid": 2892396,
+          "name": "Vescimonas",
+          "rank": "G",
+          "count": 7,
+          "percentage": 0.43859649122807015,
+          "percentage_of_classified": 2.9535864978902953
+        },
+        {
+          "taxid": 469,
+          "name": "Acinetobacter",
+          "rank": "G",
+          "count": 7,
+          "percentage": 0.43859649122807015,
+          "percentage_of_classified": 2.9535864978902953
+        },
+        {
+          "taxid": 286,
+          "name": "Pseudomonas",
+          "rank": "G",
+          "count": 7,
+          "percentage": 0.43859649122807015,
+          "percentage_of_classified": 2.9535864978902953
+        },
+        {
+          "taxid": 1236,
+          "name": "Gammaproteobacteria",
+          "rank": "C",
+          "count": 6,
+          "percentage": 0.37593984962406013,
+          "percentage_of_classified": 2.5316455696202533
+        },
+        {
+          "taxid": 2,
+          "name": "Bacteria",
+          "rank": "R2",
+          "count": 6,
+          "percentage": 0.37593984962406013,
+          "percentage_of_classified": 2.5316455696202533
+        }
+      ],
+      "num_unique_genera": 50,
+      "entropy": 4.542646243671026
+    },
+    "5": {
+      "name": "C5: Aeromonas",
+      "short_name": "Aeromonas",
+      "size": 747,
+      "num_classified": 87,
+      "num_unclassified": 660,
+      "classification_rate": 0.11646586345381527,
+      "top_genera": [
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 24,
+          "percentage": 3.21285140562249,
+          "percentage_of_classified": 27.586206896551722
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 13,
+          "percentage": 1.7402945113788488,
+          "percentage_of_classified": 14.942528735632184
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 6,
+          "percentage": 0.8032128514056225,
+          "percentage_of_classified": 6.896551724137931
+        },
+        {
+          "taxid": 694002,
+          "name": "Betacoronavirus",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.6693440428380187,
+          "percentage_of_classified": 5.747126436781609
+        },
+        {
+          "taxid": 543,
+          "name": "Enterobacteriaceae",
+          "rank": "F",
+          "count": 5,
+          "percentage": 0.6693440428380187,
+          "percentage_of_classified": 5.747126436781609
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 3,
+          "percentage": 0.40160642570281124,
+          "percentage_of_classified": 3.4482758620689653
+        },
+        {
+          "taxid": 286,
+          "name": "Pseudomonas",
+          "rank": "G",
+          "count": 3,
+          "percentage": 0.40160642570281124,
+          "percentage_of_classified": 3.4482758620689653
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 3,
+          "percentage": 0.40160642570281124,
+          "percentage_of_classified": 3.4482758620689653
+        },
+        {
+          "taxid": 1883,
+          "name": "Streptomyces",
+          "rank": "G",
+          "count": 2,
+          "percentage": 0.2677376171352075,
+          "percentage_of_classified": 2.2988505747126435
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 2,
+          "percentage": 0.2677376171352075,
+          "percentage_of_classified": 2.2988505747126435
+        }
+      ],
+      "num_unique_genera": 27,
+      "entropy": 3.878132750873638
+    },
+    "6": {
+      "name": "C6: Aeromonas",
+      "short_name": "Aeromonas",
+      "size": 1211,
+      "num_classified": 172,
+      "num_unclassified": 1039,
+      "classification_rate": 0.14203137902559868,
+      "top_genera": [
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 31,
+          "percentage": 2.559867877786953,
+          "percentage_of_classified": 18.023255813953487
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 14,
+          "percentage": 1.1560693641618498,
+          "percentage_of_classified": 8.13953488372093
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 14,
+          "percentage": 1.1560693641618498,
+          "percentage_of_classified": 8.13953488372093
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 10,
+          "percentage": 0.8257638315441783,
+          "percentage_of_classified": 5.813953488372093
+        },
+        {
+          "taxid": 286,
+          "name": "Pseudomonas",
+          "rank": "G",
+          "count": 10,
+          "percentage": 0.8257638315441783,
+          "percentage_of_classified": 5.813953488372093
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 8,
+          "percentage": 0.6606110652353427,
+          "percentage_of_classified": 4.651162790697675
+        },
+        {
+          "taxid": 2892396,
+          "name": "Vescimonas",
+          "rank": "G",
+          "count": 7,
+          "percentage": 0.5780346820809249,
+          "percentage_of_classified": 4.069767441860465
+        },
+        {
+          "taxid": 106589,
+          "name": "Cupriavidus",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.41288191577208916,
+          "percentage_of_classified": 2.9069767441860463
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.41288191577208916,
+          "percentage_of_classified": 2.9069767441860463
+        },
+        {
+          "taxid": 535,
+          "name": "Chromobacterium",
+          "rank": "G",
+          "count": 5,
+          "percentage": 0.41288191577208916,
+          "percentage_of_classified": 2.9069767441860463
+        }
+      ],
+      "num_unique_genera": 52,
+      "entropy": 4.778186154750543
+    },
+    "7": {
+      "name": "C7: Severe acute respiratory syndrome coronavirus 2",
+      "short_name": "Severe acute respiratory syndrome coronavirus 2",
+      "size": 399,
+      "num_classified": 55,
+      "num_unclassified": 344,
+      "classification_rate": 0.13784461152882205,
+      "top_genera": [
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 24,
+          "percentage": 6.015037593984962,
+          "percentage_of_classified": 43.63636363636363
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 6,
+          "percentage": 1.5037593984962405,
+          "percentage_of_classified": 10.909090909090908
+        },
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 6,
+          "percentage": 1.5037593984962405,
+          "percentage_of_classified": 10.909090909090908
+        },
+        {
+          "taxid": 80865,
+          "name": "Delftia",
+          "rank": "G",
+          "count": 3,
+          "percentage": 0.7518796992481203,
+          "percentage_of_classified": 5.454545454545454
+        },
+        {
+          "taxid": 91347,
+          "name": "Enterobacterales",
+          "rank": "O",
+          "count": 2,
+          "percentage": 0.5012531328320802,
+          "percentage_of_classified": 3.6363636363636362
+        },
+        {
+          "taxid": 1236,
+          "name": "Gammaproteobacteria",
+          "rank": "C",
+          "count": 2,
+          "percentage": 0.5012531328320802,
+          "percentage_of_classified": 3.6363636363636362
+        },
+        {
+          "taxid": 97050,
+          "name": "Ruegeria",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.2506265664160401,
+          "percentage_of_classified": 1.8181818181818181
+        },
+        {
+          "taxid": 48736,
+          "name": "Ralstonia",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.2506265664160401,
+          "percentage_of_classified": 1.8181818181818181
+        },
+        {
+          "taxid": 1604696,
+          "name": "Faucicola",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.2506265664160401,
+          "percentage_of_classified": 1.8181818181818181
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 1,
+          "percentage": 0.2506265664160401,
+          "percentage_of_classified": 1.8181818181818181
+        }
+      ],
+      "num_unique_genera": 18,
+      "entropy": 3.0574772130132937
+    },
+    "8": {
+      "name": "C8: Aeromonas",
+      "short_name": "Aeromonas",
+      "size": 1287,
+      "num_classified": 165,
+      "num_unclassified": 1122,
+      "classification_rate": 0.1282051282051282,
+      "top_genera": [
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 36,
+          "percentage": 2.797202797202797,
+          "percentage_of_classified": 21.818181818181817
+        },
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 21,
+          "percentage": 1.6317016317016317,
+          "percentage_of_classified": 12.727272727272727
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 13,
+          "percentage": 1.0101010101010102,
+          "percentage_of_classified": 7.878787878787879
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 13,
+          "percentage": 1.0101010101010102,
+          "percentage_of_classified": 7.878787878787879
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 11,
+          "percentage": 0.8547008547008547,
+          "percentage_of_classified": 6.666666666666667
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 9,
+          "percentage": 0.6993006993006993,
+          "percentage_of_classified": 5.454545454545454
+        },
+        {
+          "taxid": 816,
+          "name": "Bacteroides",
+          "rank": "G",
+          "count": 7,
+          "percentage": 0.5439005439005439,
+          "percentage_of_classified": 4.242424242424242
+        },
+        {
+          "taxid": 694002,
+          "name": "Betacoronavirus",
+          "rank": "G",
+          "count": 6,
+          "percentage": 0.4662004662004662,
+          "percentage_of_classified": 3.6363636363636362
+        },
+        {
+          "taxid": 286,
+          "name": "Pseudomonas",
+          "rank": "G",
+          "count": 6,
+          "percentage": 0.4662004662004662,
+          "percentage_of_classified": 3.6363636363636362
+        },
+        {
+          "taxid": 2,
+          "name": "Bacteria",
+          "rank": "R2",
+          "count": 5,
+          "percentage": 0.3885003885003885,
+          "percentage_of_classified": 3.0303030303030303
+        }
+      ],
+      "num_unique_genera": 35,
+      "entropy": 4.128831099945246
+    },
+    "9": {
+      "name": "C9: Severe acute respiratory syndrome coronavirus 2",
+      "short_name": "Severe acute respiratory syndrome coronavirus 2",
+      "size": 738,
+      "num_classified": 94,
+      "num_unclassified": 644,
+      "classification_rate": 0.12737127371273713,
+      "top_genera": [
+        {
+          "taxid": 2697049,
+          "name": "Severe acute respiratory syndrome coronavirus 2",
+          "rank": "S1",
+          "count": 31,
+          "percentage": 4.200542005420054,
+          "percentage_of_classified": 32.97872340425532
+        },
+        {
+          "taxid": 642,
+          "name": "Aeromonas",
+          "rank": "G",
+          "count": 11,
+          "percentage": 1.4905149051490514,
+          "percentage_of_classified": 11.702127659574469
+        },
+        {
+          "taxid": 1224,
+          "name": "Pseudomonadota",
+          "rank": "P",
+          "count": 5,
+          "percentage": 0.6775067750677507,
+          "percentage_of_classified": 5.319148936170213
+        },
+        {
+          "taxid": 9605,
+          "name": "Homo",
+          "rank": "G",
+          "count": 4,
+          "percentage": 0.5420054200542005,
+          "percentage_of_classified": 4.25531914893617
+        },
+        {
+          "taxid": 816,
+          "name": "Bacteroides",
+          "rank": "G",
+          "count": 4,
+          "percentage": 0.5420054200542005,
+          "percentage_of_classified": 4.25531914893617
+        },
+        {
+          "taxid": 2,
+          "name": "Bacteria",
+          "rank": "R2",
+          "count": 3,
+          "percentage": 0.4065040650406504,
+          "percentage_of_classified": 3.1914893617021276
+        },
+        {
+          "taxid": 570,
+          "name": "Klebsiella",
+          "rank": "G",
+          "count": 3,
+          "percentage": 0.4065040650406504,
+          "percentage_of_classified": 3.1914893617021276
+        },
+        {
+          "taxid": 561,
+          "name": "Escherichia",
+          "rank": "G",
+          "count": 3,
+          "percentage": 0.4065040650406504,
+          "percentage_of_classified": 3.1914893617021276
+        },
+        {
+          "taxid": 32008,
+          "name": "Burkholderia",
+          "rank": "G",
+          "count": 3,
+          "percentage": 0.4065040650406504,
+          "percentage_of_classified": 3.1914893617021276
+        },
+        {
+          "taxid": 454594,
+          "name": "Xanthomonas citri pv. mangiferaeindicae",
+          "rank": "S1",
+          "count": 2,
+          "percentage": 0.27100271002710025,
+          "percentage_of_classified": 2.127659574468085
+        }
+      ],
+      "num_unique_genera": 31,
+      "entropy": 3.9134928526340844
+    }
+  },
+  "summary": {
+    "num_clusters": 10,
+    "total_sequences": 10000,
+    "avg_cluster_size": 1000.0,
+    "overall_classification_rate": 0.1383,
+    "taxonomy_level": "genus"
+  }
+}

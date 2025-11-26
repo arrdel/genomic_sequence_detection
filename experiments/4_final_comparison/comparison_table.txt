@@ -1,0 +1,18 @@
+====================================================================================================
+MODEL COMPARISON RESULTS
+====================================================================================================
+
+                    Metric Standard VQ-VAE Masked VQ-VAE Contrastive VQ-VAE               Best
+      Token Accuracy (%) ↑           15.63          0.02                N/A    Standard VQ-VAE
+   Sequence Accuracy (%) ↑            0.00          0.00                N/A    Standard VQ-VAE
+Codebook Utilization (%) ↑           99.61         13.48                N/A    Standard VQ-VAE
+     Codebook Perplexity ↑            75.9           1.5                N/A    Standard VQ-VAE
+               Alignment ↓          0.1361        0.0002             2.0041      Masked VQ-VAE
+              Uniformity ↓         -0.2442       -0.0005            -3.8472 Contrastive VQ-VAE
+        Silhouette Score ↑           0.091         0.477              0.019      Masked VQ-VAE
+    Davies-Bouldin Index ↓           2.311         0.575              5.086      Masked VQ-VAE
+       Calinski-Harabasz ↑          2985.9       46316.9               90.3      Masked VQ-VAE
+    Linear Probe Acc (%) ↑           95.93         89.90              96.33 Contrastive VQ-VAE
+       K-NN Accuracy (%) ↑           86.27         98.77              59.53      Masked VQ-VAE
+
+====================================================================================================

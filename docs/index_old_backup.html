@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners -->
+  <meta name="description"
+    content="Discrete Representation Learning for Viral Variant Detection in Wastewater Genomic Sequencing. A novel approach using Vector-Quantized Variational Autoencoders (VQ-VAE) for reference-free genomic sequence analysis.">
+  <meta property="og:title" content="VQ-VAE for Genomic Sequence Detection - GSU Deep Learning Project" />
+  <meta property="og:description"
+    content="Learning discrete representations of viral genomic sequences from wastewater surveillance data using VQ-VAE, masked learning, and contrastive methods." />
+  <meta property="og:url" content="https://github.com/arrdel/genomic_sequence_detection" />
+
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+  <meta property="og:image" content="static/images/teaser.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <meta name="twitter:title" content="VQ-VAE for Genomic Sequence Detection - GSU Deep Learning Project">
+  <meta name="twitter:description"
+    content="Learning discrete representations of viral genomic sequences from wastewater surveillance data using VQ-VAE.">
+  <meta name="twitter:image" content="static/images/teaser.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Keywords for your paper to be indexed by-->
+  <meta name="keywords"
+    content="VQ-VAE, vector quantization, genomic sequences, wastewater surveillance, viral variant detection, discrete representation learning, deep learning, SARS-CoV-2, k-mer tokenization, contrastive learning, masked learning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Discrete Representation Learning for Viral Variant Detection | GSU Deep Learning Project</title>
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+
+  <!-- MathJax for rendering LaTeX equations -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Custom styles for enhanced presentation -->
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    figure.image {
+      transition: transform 0.3s ease;
+    }
+
+    figure.image:hover {
+      transform: scale(1.02);
+    }
+
+    code {
+      background-color: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+
+    .table th {
+      font-weight: 600;
+    }
+
+    section.section {
+      padding: 3rem 1.5rem;
+    }
+
+    .content a {
+      color: #3273dc;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-bottom 0.2s ease;
+    }
+
+    .content a:hover {
+      border-bottom: 1px solid #3273dc;
+    }
+
+    .content ul {
+      line-height: 1.8;
+    }
+
+    .title.is-3,
+    .title.is-4 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .placeholder-box {
+      border: 2px dashed #ccc;
+      padding: 2rem;
+      text-align: center;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      margin: 2rem 0;
+    }
+
+    .placeholder-box .placeholder-icon {
+      font-size: 4rem;
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
+
+    .placeholder-box .placeholder-text {
+      color: #666;
+      font-size: 1.1rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Discrete Representation Learning for Viral Variant Detection in Wastewater Genomic Sequencing</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- Paper authors -->
+              <span class="author-block">
+                <a href="https://github.com/arrdel" target="_blank">Richmond Azumah</a><sup>*</sup>,</span>
+              <span class="author-block">
+                <a href="https://github.com/arrdel" target="_blank">Adele Chinda</a><sup>*</sup>,</span>
+              <span class="author-block">
+                <a href="https://github.com" target="_blank">Hemanth Demakethepalli Venkateswara</a></span>
+            </div>
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">Georgia State University<br></span>
+              <span class="eql-cntrb"><small><br><sup>*</sup>Indicates Equal Contribution</small></span>
+            </div>
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <!-- Paper PDF link -->
+                <span class="link-block">
+                  <a href="static/pdfs/neurips_paper.pdf"
+                    target="_blank" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+
+                <!-- Poster PDF link -->
+                <span class="link-block">
+                  <a href="static/pdfs/poster.pdf" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-image"></i>
+                    </span>
+                    <span>Poster</span>
+                  </a>
+                </span>
+
+                <!-- Github link -->
+                <span class="link-block">
+                  <a href="https://github.com/arrdel/genomic_sequence_detection" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                  </a>
+                </span>
+
+                <!-- WandB link -->
+                <span class="link-block">
+                  <a href="#" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-chart-line"></i>
+                    </span>
+                    <span>W&B Logs</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Teaser image placeholder -->
+  <section class="hero teaser">
+    <div class="container is-max-desktop">
+      <div class="hero-body">
+        <div class="placeholder-box">
+          <div class="placeholder-icon">🧬</div>
+          <div class="placeholder-text">
+            <strong>PLACEHOLDER:</strong> Wastewater surveillance pipeline overview diagram<br>
+            (Will show: Wastewater → Sampling → RNA Extraction → Sequencing → VQ-VAE Model → Variant Detection)
+          </div>
+        </div>
+        <h2 class="subtitle has-text-centered" style="margin-top: 1rem;">
+          A novel deep learning pipeline for learning discrete representations of viral genomic sequences from wastewater surveillance data using Vector-Quantized Variational Autoencoders (VQ-VAE).
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Wastewater-based epidemiology provides a non-invasive, community-wide approach to viral surveillance, but analyzing highly fragmented and noisy genomic sequences remains challenging. Traditional reference-based pipelines require known genomes and struggle with co-circulating variants and sequencing artifacts. We propose a reference-free approach using Vector-Quantized Variational Autoencoders (VQ-VAE) to learn discrete representations of viral genomic sequences from wastewater surveillance data.
+            </p>
+            <p>
+              Our method employs k-mer tokenization (k=6) to convert raw DNA sequences into fixed-length representations, which are then encoded into a discrete latent space using a learned codebook of 512 entries. We train the model on ~100,000 SARS-CoV-2 wastewater sequencing reads, achieving 99.52% mean token-level reconstruction accuracy and 56.33% exact sequence match rate with only 19.73% codebook utilization, indicating effective compression into meaningful discrete representations.
+            </p>
+            <p>
+              We extend the base VQ-VAE with two complementary approaches: (1) <strong>Masked VQ-VAE</strong>, which masks 20% of input tokens during training to improve robustness to missing data, achieving 95% accuracy on masked tokens and 12% improvement on corrupted sequences; and (2) <strong>Contrastive VQ-VAE</strong>, which fine-tunes the encoder using InfoNCE loss with augmented views, improving clustering quality by 35% (Silhouette score: 0.31 → 0.42). Our discrete representation learning framework offers a scalable, reference-free approach to genomic sequence analysis suitable for real-time wastewater surveillance and variant detection.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Introduction -->
+  <section class="section hero">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Introduction</h2>
+
+          <div class="content has-text-justified">
+            <h3 class="title is-4">Wastewater Surveillance: Opportunities and Challenges</h3>
+            <p>
+              Wastewater-based epidemiology has emerged as a powerful tool for monitoring community-level viral prevalence, offering early warning signals for disease outbreaks and variant emergence. Unlike clinical testing, wastewater surveillance provides a non-invasive, population-wide snapshot that captures both symptomatic and asymptomatic infections. However, analyzing genomic sequences from wastewater presents unique computational challenges:
+            </p>
+            
+            <ul>
+              <li><strong>Fragmentation:</strong> Sequencing reads are highly fragmented (100-300 bp), making de novo assembly difficult</li>
+              <li><strong>Noise:</strong> High sequencing noise and quality variation due to degraded viral RNA in wastewater</li>
+              <li><strong>Low concentration:</strong> Viral RNA constitutes a small fraction of total genetic material</li>
+              <li><strong>Complexity:</strong> Multiple co-circulating viral strains and variants are present simultaneously</li>
+              <li><strong>Reference dependence:</strong> Traditional bioinformatics pipelines require known reference genomes</li>
+            </ul>
+
+            <h3 class="title is-4">Our Approach: Reference-Free Discrete Representation Learning</h3>
+            <p>
+              We propose a <strong>reference-free deep learning approach</strong> based on Vector-Quantized Variational Autoencoders (VQ-VAE) to learn discrete, compressed representations of viral genomic sequences. Our pipeline consists of three key components:
+            </p>
+
+            <ol>
+              <li><strong>K-mer Tokenization:</strong> Convert raw DNA sequences into overlapping k-mer tokens (k=6), creating a vocabulary of 4,097 canonical k-mers that capture local sequence patterns</li>
+              <li><strong>Discrete Representation Learning:</strong> Train a VQ-VAE with a codebook of 512 discrete latent codes (dimension 64) to compress sequences while preserving reconstruction quality</li>
+              <li><strong>Enhanced Learning Objectives:</strong> Extend the base model with:
+                <ul>
+                  <li><strong>Masked VQ-VAE:</strong> BERT-style masked token prediction for robustness</li>
+                  <li><strong>Contrastive VQ-VAE:</strong> SimCLR-style contrastive learning for better clustering</li>
+                </ul>
+              </li>
+            </ol>
+
+            <p>
+              This approach enables unsupervised discovery of sequence patterns, variant clustering, and robust sequence reconstruction without requiring reference genomes—making it particularly suitable for novel variant detection and real-time surveillance applications.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data & Preprocessing -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Dataset & Preprocessing</h2>
+
+          <div class="content has-text-justified">
+            <h3 class="title is-4">Data Source</h3>
+            <p>
+              We use SARS-CoV-2 wastewater sequencing data in FASTQ format, consisting of approximately 100,000 reads with variable lengths ranging from 36 to 300 base pairs. The data represents real-world wastewater surveillance samples with typical challenges: low quality scores, adapter contamination, and significant fragmentation.
+            </p>
+
+            <h3 class="title is-4">Preprocessing Pipeline</h3>
+            <ol>
+              <li><strong>Quality Control (FastQC):</strong> Assess initial read quality distribution and identify potential issues</li>
+              <li><strong>Adapter Removal & Quality Filtering (Trimmomatic):</strong>
+                <ul>
+                  <li>Leading/trailing quality threshold: 3</li>
+                  <li>Sliding window: 4:15 (window size 4, min quality 15)</li>
+                  <li>Minimum read length: 36 bp</li>
+                </ul>
+              </li>
+              <li><strong>K-mer Tokenization:</strong>
+                <ul>
+                  <li>K-mer size: k=6</li>
+                  <li>Vocabulary: 4,097 tokens (4,096 canonical k-mers + special tokens)</li>
+                  <li>Canonical k-mer mapping (consider reverse complement)</li>
+                  <li>Pad/truncate sequences to fixed length: L=150 tokens</li>
+                </ul>
+              </li>
+            </ol>
+
+            <!-- Preprocessing visualization placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">📊</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> Quality score distribution before/after preprocessing<br>
+                (FastQC-style plots showing improvement in read quality)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Methods -->
+  <section class="section hero">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Methods</h2>
+
+          <div class="content has-text-justified">
+            
+            <h3 class="title is-4">1. Vector-Quantized Variational Autoencoder (VQ-VAE)</h3>
+            
+            <p>
+              The VQ-VAE architecture consists of three main components:
+            </p>
+
+            <h4 class="title is-5">Encoder</h4>
+            <p>
+              The encoder maps tokenized sequences to continuous latent representations:
+            </p>
+            <p>
+              $$z_e = f_\theta(x)$$
+            </p>
+            <p>
+              where \(x \in \mathbb{Z}^{L}\) is the input token sequence, and the encoder \(f_\theta\) consists of:
+            </p>
+            <ul>
+              <li><strong>Token Embedding:</strong> \(V = 4{,}097\) vocabulary, embedding dimension \(d = 128\)</li>
+              <li><strong>1D Convolutions:</strong> Two layers with kernel size 3, stride 1, hidden dimension 256</li>
+              <li><strong>Layer Normalization + Dropout:</strong> Dropout probability \(p = 0.1\)</li>
+            </ul>
+
+            <h4 class="title is-5">Vector Quantizer</h4>
+            <p>
+              The quantizer discretizes continuous representations using a learned codebook:
+            </p>
+            <p>
+              $$z_q = \text{Quantize}(z_e) = e_k, \quad k = \arg\min_j \|z_e - e_j\|_2$$
+            </p>
+            <p>
+              where \(\{e_1, \ldots, e_K\}\) is the codebook with \(K=512\) entries, each of dimension \(D=64\). The codebook is updated using Exponential Moving Average (EMA) with decay \(\gamma = 0.95\).
+            </p>
+
+            <h4 class="title is-5">Decoder</h4>
+            <p>
+              The decoder reconstructs the sequence from quantized representations:
+            </p>
+            <p>
+              $$\hat{x} = g_\phi(z_q)$$
+            </p>
+            <p>
+              The decoder architecture mirrors the encoder with 1D convolutions, layer normalization, and a final linear projection to vocabulary size.
+            </p>
+
+            <h4 class="title is-5">Training Objective</h4>
+            <p>
+              The complete loss function combines reconstruction, commitment, and entropy regularization:
+            </p>
+            <p>
+              $$\mathcal{L} = \mathcal{L}_{\text{recon}} + \beta \mathcal{L}_{\text{commit}} - \lambda H[\mathcal{C}]$$
+            </p>
+            <p>where:</p>
+            <ul>
+              <li>\(\mathcal{L}_{\text{recon}} = -\sum_{i=1}^L \log p(x_i | z_q)\) is the cross-entropy reconstruction loss</li>
+              <li>\(\mathcal{L}_{\text{commit}} = \|z_e - \text{sg}[z_q]\|_2^2\) is the commitment loss with \(\beta = 0.1\)</li>
+              <li>\(H[\mathcal{C}] = -\sum_{k=1}^K p_k \log p_k\) is the codebook usage entropy with \(\lambda = 0.003\)</li>
+            </ul>
+
+            <!-- VQ-VAE Architecture Diagram Placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">🏗️</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> VQ-VAE Architecture Diagram<br>
+                (Input → Encoder → Vector Quantizer → Decoder → Output)<br>
+                Include detailed layer specifications and dimension annotations
+              </div>
+            </div>
+
+            <h3 class="title is-4">2. Masked VQ-VAE</h3>
+            
+            <p>
+              To improve robustness to missing or corrupted data, we extend the VQ-VAE with a masked language modeling objective inspired by BERT:
+            </p>
+            
+            <p>
+              During training, we randomly mask 20% of input tokens (\(p_{\text{mask}} = 0.2\)) and train the model to reconstruct these masked positions:
+            </p>
+            <p>
+              $$\mathcal{L}_{\text{masked}} = -\sum_{i \in \mathcal{M}} \log p(x_i | z_q(\tilde{x}))$$
+            </p>
+            <p>
+              where \(\mathcal{M}\) is the set of masked positions and \(\tilde{x}\) is the masked input.
+            </p>
+
+            <!-- Masked VQ-VAE Diagram Placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">🎭</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> Masked VQ-VAE Process Diagram<br>
+                (Original Sequence → Random Masking → VQ-VAE → Reconstruction → Compare with Original)
+              </div>
+            </div>
+
+            <h3 class="title is-4">3. Contrastive VQ-VAE</h3>
+            
+            <p>
+              To learn better cluster-separated representations, we fine-tune the encoder using contrastive learning with InfoNCE loss:
+            </p>
+            <p>
+              $$\mathcal{L}_{\text{contrast}} = -\mathbb{E}\left[\log \frac{\exp(\text{sim}(v_i, v_{i'})/\tau)}{\sum_{k=1}^{2B} \exp(\text{sim}(v_i, v_k)/\tau)}\right]$$
+            </p>
+            <p>
+              where:
+            </p>
+            <ul>
+              <li>\(v_i, v_{i'}\) are L2-normalized embeddings from two augmented views of the same sequence</li>
+              <li>\(\text{sim}(u, v) = u^\top v\) is cosine similarity</li>
+              <li>\(\tau = 0.5\) is the temperature parameter</li>
+              <li>\(B\) is the batch size (128)</li>
+            </ul>
+
+            <p>
+              We generate two augmented views for each sequence:
+            </p>
+            <ul>
+              <li><strong>View 1:</strong> Random masking with \(p_{\text{mask}} = 0.15\) (~22 tokens per sequence)</li>
+              <li><strong>View 2:</strong> Random dropout with \(p_{\text{drop}} = 0.10\) (~15 tokens per sequence)</li>
+            </ul>
+
+            <!-- Contrastive Learning Diagram Placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">🔄</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> Contrastive Learning Framework<br>
+                (Original Sequence → Two Augmented Views → Encoders → Projection Heads → Contrastive Loss)<br>
+                Show positive pairs being pulled together and negative pairs being pushed apart
+              </div>
+            </div>
+
+            <h3 class="title is-4">Training Configuration</h3>
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th>Hyperparameter</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Epochs</td>
+                  <td>50</td>
+                </tr>
+                <tr>
+                  <td>Batch Size</td>
+                  <td>128</td>
+                </tr>
+                <tr>
+                  <td>Learning Rate</td>
+                  <td>1e-4</td>
+                </tr>
+                <tr>
+                  <td>Optimizer</td>
+                  <td>AdamW</td>
+                </tr>
+                <tr>
+                  <td>GPUs</td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td>Codebook Size (K)</td>
+                  <td>512</td>
+                </tr>
+                <tr>
+                  <td>Latent Dimension (D)</td>
+                  <td>64</td>
+                </tr>
+                <tr>
+                  <td>EMA Decay (γ)</td>
+                  <td>0.95</td>
+                </tr>
+                <tr>
+                  <td>Commitment Weight (β)</td>
+                  <td>0.1</td>
+                </tr>
+                <tr>
+                  <td>Entropy Weight (λ)</td>
+                  <td>0.003</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Results</h2>
+
+          <div class="content has-text-justified">
+            
+            <h3 class="title is-4">Base VQ-VAE Performance</h3>
+            
+            <!-- Training Curves Placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">📈</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> Training Curves from W&B<br>
+                (Loss curves: Total Loss, Reconstruction Loss, Commitment Loss, Entropy over epochs)
+              </div>
+            </div>
+
+            <h4 class="title is-5">Reconstruction Quality</h4>
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Mean Token Accuracy</strong></td>
+                  <td>99.52%</td>
+                </tr>
+                <tr>
+                  <td><strong>Median Token Accuracy</strong></td>
+                  <td>100.0%</td>
+                </tr>
+                <tr>
+                  <td><strong>Exact Sequence Match Rate</strong></td>
+                  <td>56.33%</td>
+                </tr>
+                <tr>
+                  <td><strong>Codebook Utilization</strong></td>
+                  <td>19.73%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p>
+              The high token-level accuracy (99.52%) demonstrates that the VQ-VAE learns to effectively compress and reconstruct genomic sequences. The modest exact match rate (56.33%) is expected given the challenging nature of the data, while the low codebook utilization (19.73%) suggests the model efficiently compresses sequences into a smaller effective vocabulary.
+            </p>
+
+            <!-- Reconstruction Examples Placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">🔍</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> Sequence Reconstruction Examples<br>
+                (Side-by-side comparison of input vs. reconstructed sequences with alignment visualization)
+              </div>
+            </div>
+
+            <h3 class="title is-4">Masked VQ-VAE Results</h3>
+            
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Masked Token Accuracy</strong></td>
+                  <td>95%</td>
+                </tr>
+                <tr>
+                  <td><strong>Improvement on Corrupted Sequences</strong></td>
+                  <td>+12%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p>
+              The Masked VQ-VAE demonstrates strong performance on masked token prediction (95% accuracy), indicating that the model learns robust contextual representations. The 12% improvement on corrupted sequences shows enhanced robustness to missing data.
+            </p>
+
+            <h3 class="title is-4">Contrastive VQ-VAE Results</h3>
+            
+            <h4 class="title is-5">Clustering Quality Comparison</h4>
+            <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Base VQ-VAE</th>
+                  <th>Contrastive VQ-VAE</th>
+                  <th>Improvement</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Silhouette Score</strong></td>
+                  <td>0.31</td>
+                  <td>0.42</td>
+                  <td>+35%</td>
+                </tr>
+                <tr>
+                  <td><strong>Davies-Bouldin Index</strong></td>
+                  <td>1.68</td>
+                  <td>1.34</td>
+                  <td>-20% (lower is better)</td>
+                </tr>
+                <tr>
+                  <td><strong>Calinski-Harabasz Score</strong></td>
+                  <td>1248</td>
+                  <td>1876</td>
+                  <td>+50%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p>
+              Contrastive learning significantly improves clustering quality across all metrics. The 35% improvement in Silhouette score indicates much better-separated and cohesive clusters, making the learned representations more suitable for variant identification tasks.
+            </p>
+
+            <!-- Embedding Visualization Placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">🗺️</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> t-SNE/UMAP Embedding Visualizations<br>
+                (Side-by-side comparison: Base VQ-VAE vs. Contrastive VQ-VAE)<br>
+                Show colored clusters representing different sequence groups
+              </div>
+            </div>
+
+            <!-- Codebook Usage Heatmap Placeholder -->
+            <div class="placeholder-box">
+              <div class="placeholder-icon">🔥</div>
+              <div class="placeholder-text">
+                <strong>PLACEHOLDER:</strong> Codebook Usage Heatmap<br>
+                (Visualize which codebook entries are most frequently used)
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Discussion & Future Work -->
+  <section class="section hero">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Discussion & Future Work</h2>
+
+          <div class="content has-text-justified">
+            
+            <h3 class="title is-4">Key Findings</h3>
+            <ul>
+              <li>✓ VQ-VAE achieves 99.5% reconstruction accuracy on fragmented wastewater sequences</li>
+              <li>✓ Discrete codebook effectively captures genomic patterns with only 19.7% utilization</li>
+              <li>✓ Entropy regularization prevents codebook collapse while maintaining diversity</li>
+              <li>✓ Masked learning improves robustness to missing/corrupted data by 12%</li>
+              <li>✓ Contrastive learning improves clustering separability by 35%</li>
+              <li>✓ Reference-free approach enables novel variant detection</li>
+            </ul>
+
+            <h3 class="title is-4">Advantages Over Traditional Methods</h3>
+            <ul>
+              <li><strong>No reference genome required:</strong> Works with novel and unknown variants</li>
+              <li><strong>Computationally efficient:</strong> Training and inference in minutes vs. hours for alignment-based methods</li>
+              <li><strong>Learns meaningful representations:</strong> Discrete codes capture interpretable sequence patterns</li>
+              <li><strong>Robust to noise:</strong> Handles degraded RNA and sequencing artifacts effectively</li>
+              <li><strong>Scalable:</strong> Can process large-scale wastewater surveillance data in real-time</li>
+            </ul>
+
+            <h3 class="title is-4">Limitations</h3>
+            <ul>
+              <li>Modest exact sequence match rate (56%) leaves room for improvement</li>
+              <li>Codebook utilization suggests potential for more compact representations</li>
+              <li>Model currently focused on SARS-CoV-2; generalization to other pathogens needs validation</li>
+              <li>Interpretability of learned discrete codes requires further analysis</li>
+            </ul>
+
+            <h3 class="title is-4">Future Directions</h3>
+            <ol>
+              <li><strong>Hierarchical VQ-VAE:</strong> Multi-scale representations to capture both local k-mer patterns and long-range dependencies</li>
+              <li><strong>Phylogenetic Integration:</strong> Combine learned embeddings with traditional phylogenetic analysis</li>
+              <li><strong>Multi-Pathogen Validation:</strong> Test on diverse viral datasets (influenza, RSV, norovirus) to assess generalization</li>
+              <li><strong>Real-Time Deployment:</strong> Integrate into operational wastewater surveillance pipelines</li>
+              <li><strong>Temporal Modeling:</strong> Incorporate time-series data to track variant emergence and evolution</li>
+              <li><strong>Interpretability Analysis:</strong> Investigate biological meaning of learned codebook entries</li>
+              <li><strong>Semi-Supervised Learning:</strong> Leverage small amounts of labeled variant data to improve clustering</li>
+              <li><strong>Uncertainty Quantification:</strong> Add Bayesian extensions for confidence estimation</li>
+            </ol>
+
+            <h3 class="title is-4">Impact</h3>
+            <p>
+              This work demonstrates that discrete representation learning can provide a scalable, reference-free approach to genomic sequence analysis. By removing the dependency on reference genomes, our method <strong>democratizes genomic surveillance</strong>, making it accessible to resource-limited settings and enabling rapid response to emerging viral threats. The learned discrete representations could serve as a foundation for:
+            </p>
+            <ul>
+              <li>Early warning systems for novel variant detection</li>
+              <li>Automated clustering and classification of viral sequences</li>
+              <li>Robust sequence reconstruction in noisy surveillance data</li>
+              <li>Transfer learning to other pathogen surveillance applications</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Acknowledgments -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Acknowledgments</h2>
+          <div class="content has-text-justified">
+            <p>
+              This project was completed as part of the Deep Learning course at Georgia State University.
+              We thank our instructors and peers for their valuable feedback and support throughout this work.
+              We also acknowledge the use of computational resources provided by GSU High Performance Computing.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content has-text-centered">
+            <p style="font-size: 0.9rem; margin-top: 1rem;">
+              © 2025 Richmond Azumah · Adele Chinda
+            </p>
+            <p style="font-size: 0.9rem; margin-top: 1rem;">
+              This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template"
+                target="_blank">Academic Project Page Template</a> which was adopted from the <a
+                href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>
