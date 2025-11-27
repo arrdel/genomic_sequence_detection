@@ -161,7 +161,9 @@ $RECYCLE.BIN/
 *.sqlite3
 
 # Image/Video files (if used for visualization)
+# Ignore images in experiment results but keep docs images
 *.png
+!docs/static/images/*.png
 *.jpg
 *.jpeg
 *.gif
