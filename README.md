@@ -268,10 +268,14 @@ wandb login
 If you use this code in your research, please cite:
 
 ```bibtex
-@article{vqvae_genomics,
-  title={VQ-VAE for Genomic Sequence Analysis},
-  author={Your Name},
-  year={2025}
+@misc{chinda2025contrastivedeeplearningvariant,
+      title={Contrastive Deep Learning for Variant Detection in Wastewater Genomic Sequencing}, 
+      author={Adele Chinda and Richmond Azumah and Hemanth Demakethepalli Venkateswara},
+      year={2025},
+      eprint={2512.03158},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2512.03158}, 
 }
 ```
 
