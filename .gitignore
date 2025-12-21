@@ -231,3 +231,6 @@ evaluation_results*/
 *.pb
 *.tflite
 *.mlmodel
+
+drawio/
+report/
