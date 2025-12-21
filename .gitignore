@@ -232,5 +232,6 @@ evaluation_results*/
 *.tflite
 *.mlmodel
 
+# Project-specific folders to ignore
 drawio/
 report/
