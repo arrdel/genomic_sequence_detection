@@ -263,37 +263,9 @@ wandb login
    - Increase commitment cost: `--commitment-cost 0.5`
    - Reduce number of codes: `--num-codes 256`
 
-## Citation
-
-If you use this code in your research, please cite:
-
-```bibtex
-@misc{chinda2025contrastivedeeplearningvariant,
-      title={Contrastive Deep Learning for Variant Detection in Wastewater Genomic Sequencing}, 
-      author={Adele Chinda and Richmond Azumah and Hemanth Demakethepalli Venkateswara},
-      year={2025},
-      eprint={2512.03158},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2512.03158}, 
-}
-```
 
 ## References
 
 - [Neural Discrete Representation Learning (VQ-VAE)](https://arxiv.org/abs/1711.00937)
 - [Trimmomatic: A flexible read trimming tool](https://academic.oup.com/bioinformatics/article/30/15/2114/2390096)
 
-## License
-
-This project is provided for educational and research purposes.
-
-## Contact
-
-For questions or issues, please open an issue in the repository or contact [your email].
-
-## Acknowledgments
-
-- VQ-VAE implementation inspired by the original paper
-- Preprocessing pipeline uses Trimmomatic and FastQC
-- Experiment tracking powered by Weights & Biases
