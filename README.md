@@ -1,53 +1,133 @@
-# VQ-VAE for Genomics
+# Contrastive VQ-VAE for Genomic Surveillance
 
-A Vector Quantized Variational Autoencoder (VQ-VAE) implementation for viral genome sequence analysis and reconstruction. This project uses discrete representation learning to compress and reconstruct genomic sequences, enabling downstream tasks like anomaly detection and sequence generation.
-
-## Project Overview
-
-This implementation applies VQ-VAE to genomic sequences using k-mer tokenization. The model learns a discrete codebook of sequence patterns and can reconstruct sequences with high fidelity.
-
-### Features
-
-- **K-mer Tokenization**: Efficient sequence encoding using overlapping k-mers (default k=6)
-- **VQ-VAE Architecture**: Discrete latent space for genomic sequence representation
-- **Quality Control**: Integrated preprocessing pipeline with Trimmomatic and FastQC
-- **Experiment Tracking**: Weights & Biases (wandb) integration for experiment monitoring
-- **Comprehensive Evaluation**: Reconstruction metrics and codebook usage analysis
+Discrete representation learning for unsupervised viral variant detection in wastewater genomic sequencing data. This framework learns interpretable codebooks of genomic patterns from k-mer tokenized sequences using Vector-Quantized Variational Autoencoders (VQ-VAE), extended with masked pretraining and contrastive fine-tuning.
 
 ## Project Structure
 
 ```
-project/
-├── configs/                      # Configuration files
-│   ├── default_config.yaml      # Default hyperparameters
-│   └── experiment_configs/      # Experiment-specific configs
-│       └── large_model.yaml
-├── scripts/                      # Executable scripts
-│   ├── train.py                 # Main training script
-│   ├── evaluate.py              # Model evaluation script
-│   └── preprocess.py            # Data preprocessing script
-├── src/                         # Source code
-│   ├── __init__.py
-│   ├── models/                  # Model architectures
-│   │   ├── __init__.py
-│   │   └── vqvae.py            # VQ-VAE implementation
-│   ├── data/                    # Data processing
-│   │   ├── __init__.py
-│   │   └── tokenizer.py        # K-mer tokenization
-│   └── utils/                   # Utility functions
-│       ├── __init__.py
-│       └── wandb_init.py       # Logging utilities
-├── checkpoints/                 # Saved model checkpoints
-├── logs/                        # Training logs
-├── requirements.txt             # Python dependencies
-└── README.md                   # This file
+├── configs/                          # Configuration files
+│   ├── default_config.yaml          # Master config with all hyperparameters
+│   └── experiment_configs/          # Per-experiment overrides
+├── scripts/                          # Runnable scripts
+│   ├── run_all_experiments.sh       # Master script: runs everything
+│   ├── run_experiment.py            # Unified experiment CLI
+│   ├── vqvae_train.py              # Train base VQ-VAE
+│   ├── mqvae_train.py              # Train masked VQ-VAE
+│   ├── contrastive_finetune.py     # Contrastive fine-tuning (64-dim)
+│   ├── contrastive_finetune_128dim.py  # Contrastive fine-tuning (128-dim)
+│   ├── train_autoencoder.py        # Standard AE baseline
+│   ├── train_transformer_vae.py    # Transformer VAE baseline
+│   ├── evaluation.py               # Model comparison evaluation
+│   ├── contrastive_evaluate.py     # Contrastive model evaluation
+│   ├── vqvae_evaluate.py           # VQ-VAE evaluation
+│   ├── mqvae_evaluate.py           # Masked VQ-VAE evaluation
+│   ├── analyze_codebook.py         # Codebook analysis & visualization
+│   ├── create_4model_visualization.py  # t-SNE/UMAP comparisons
+│   ├── visualize_clustering_improvements.py  # Clustering bar charts
+│   └── preprocess.py               # Data preprocessing (Trimmomatic + FastQC)
+├── src/                              # Source code (importable package)
+│   ├── models/
+│   │   └── vqvae.py                # VQ-VAE: Encoder, Decoder, VectorQuantizerEMA
+│   ├── data/
+│   │   └── tokenizer.py            # KmerTokenizer, FastqKmerDataset
+│   ├── baselines/
+│   │   ├── dnabert2.py             # DNABERT-2 pretrained baseline
+│   │   ├── autoencoder.py          # Standard autoencoder (no VQ)
+│   │   ├── transformer_vae.py      # Transformer VAE with continuous latent
+│   │   └── kmer_pca.py             # K-mer frequency + PCA baseline
+│   ├── evaluation/
+│   │   ├── __init__.py             # Clustering, linear probe, retrieval, anomaly
+│   │   └── ablation.py             # Ablation study config generator
+│   └── utils/
+│       ├── shuffle_sequences.py
+│       └── wandb_init.py
+├── experiments/                      # Experiment outputs (git-ignored)
+├── report/                           # Paper LaTeX source
+└── requirements.txt
 ```
 
-## Installation
+## Data
 
-### Prerequisites
+Datasets are stored on scratch storage at `/media/scratch/adele/contrastive/`:
+- `raw/` — Raw FASTQ files from SRA (SRR14596438–SRR14596445)
+- `processed/` — Quality-controlled reads after Trimmomatic
+- `external/` — Reference genome (NC_045512.2, SARS-CoV-2)
 
-- Python 3.8 or higher
+## Quick Start
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Run all experiments
+bash scripts/run_all_experiments.sh
+
+# 3. Or run individual experiments:
+python scripts/run_experiment.py train-vqvae \
+    --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq \
+    --output-dir /media/scratch/adele/contrastive/experiments/vqvae
+
+# 4. Run DNABERT-2 baseline
+python scripts/run_experiment.py baseline-dnabert2 \
+    --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq \
+    --output-dir /media/scratch/adele/contrastive/experiments/dnabert2
+
+# 5. Run ablation studies
+python scripts/run_experiment.py ablation --study codebook_size \
+    --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq
+
+# 6. Evaluate all models
+python scripts/run_experiment.py evaluate-all \
+    --results-dir /media/scratch/adele/contrastive/experiments
+```
+
+## Models
+
+| Model | Description | Key Metric |
+|-------|-------------|------------|
+| **VQ-VAE** | Base model with EMA codebook | 99.52% token accuracy |
+| **Masked VQ-VAE** | BERT-style masked pretraining | ~95% acc under 20% masking |
+| **Contrastive (64d)** | SimCLR fine-tuning | Silhouette 0.42 (+35%) |
+| **Contrastive (128d)** | Higher-dim projection | Silhouette 0.44 (+42%) |
+
+## Baselines
+
+| Baseline | Type | Notes |
+|----------|------|-------|
+| **DNABERT-2** | Pretrained transformer | Feature extraction + linear probe |
+| **Standard AE** | Deterministic autoencoder | Ablation: no VQ bottleneck |
+| **Transformer VAE** | Continuous VAE + attention | Stronger architecture baseline |
+| **K-mer PCA** | Classical ML | Non-learned representation |
+
+## Evaluation Suite
+
+All models evaluated on:
+1. **Clustering** — Silhouette, Davies-Bouldin, Calinski-Harabasz (k=5,10,15,20)
+2. **Linear probing** — Logistic regression, KNN, SVM with 5-fold CV
+3. **Retrieval** — Precision@k for nearest-neighbor search
+4. **Anomaly detection** — AUROC/AUPRC for rare variant detection
+5. **Embedding quality** — Uniformity, isotropy, effective dimensionality
+
+All results reported as **mean ± std** over 5 random seeds.
+
+## Ablation Studies
+
+- Codebook size: K ∈ {64, 128, 256, 512, 1024, 2048}
+- Code dimension: D ∈ {16, 32, 64, 128, 256}
+- K-mer size: k ∈ {4, 5, 6, 7, 8}
+- Loss components: reconstruction ± commitment ± entropy
+- Contrastive temperature: τ ∈ {0.1, 0.3, 0.5, 0.7, 1.0}
+- Masking probability: p ∈ {0.05, 0.10, 0.15, 0.20, 0.25, 0.30}
+
+## Citation
+
+```bibtex
+@inproceedings{chinda2025contrastive,
+  title={Contrastive Deep Learning for Variant Detection in Wastewater Genomic Sequencing},
+  author={Chinda, Adele and Azumah, Richmond and Venkateswara, Hemanth},
+  year={2025}
+}
+```
 - CUDA-capable GPU (recommended)
 - Java (for Trimmomatic)
 
@@ -58,166 +138,9 @@ project/
    cd project
    ```
 
-2. **Install Python dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## License
 
-3. **Install Trimmomatic** (for preprocessing):
-   - Trimmomatic is included in the `Trimmomatic/` directory
-   - Ensure Java is installed: `java -version`
-
-4. **Install FastQC** (optional, for quality control):
-   ```bash
-   # On Ubuntu/Debian
-   sudo apt-get install fastqc
-   
-   # On macOS
-   brew install fastqc
-   ```
-
-## Usage
-
-### 1. Data Preprocessing
-
-Preprocess raw FASTQ files using Trimmomatic:
-
-```bash
-python scripts/preprocess.py \
-    --input-fastq wastewater_seq_dataset.fastq \
-    --output-fastq cleaned_reads.fastq \
-    --run-fastqc \
-    --threads 4
-```
-
-**Options:**
-- `--input-fastq`: Path to raw FASTQ file
-- `--output-fastq`: Path to save cleaned sequences
-- `--run-fastqc`: Run quality control before and after
-- `--threads`: Number of CPU threads to use
-- `--skip-trimmomatic`: Skip trimming (only run FastQC)
-
-### 2. Training
-
-Train the VQ-VAE model:
-
-```bash
-python scripts/train.py \
-    --data-path cleaned_reads.fastq \
-    --output-dir ./outputs \
-    --batch-size 64 \
-    --epochs 100 \
-    --n-gpu 1
-```
-
-**Key Training Arguments:**
-
-**Data:**
-- `--data-path`: Path to preprocessed FASTQ file
-- `--max-seq-length`: Maximum sequence length (default: 150)
-- `--k-mer`: K-mer size for tokenization (default: 6)
-
-**Model:**
-- `--vocab-size`: Vocabulary size (default: 4097 = 4^6 + 1)
-- `--num-codes`: Number of codebook vectors (default: 512)
-- `--code-dim`: Dimension of codebook vectors (default: 64)
-- `--embed-dim`: Token embedding dimension (default: 128)
-- `--hidden-dim`: Hidden layer dimension (default: 256)
-
-**Training:**
-- `--epochs`: Number of training epochs (default: 100)
-- `--batch-size`: Training batch size (default: 64)
-- `--learning-rate`: Learning rate (default: 2e-4)
-- `--save-freq`: Save checkpoint every N epochs (default: 1)
-
-**GPU:**
-- `--n-gpu`: Number of GPUs to use (default: 1)
-- `--gpu-ids`: Specific GPU IDs, e.g., "0,1,2"
-- `--no-cuda`: Disable CUDA
-
-**Logging:**
-- `--wandb-project`: W&B project name (default: vqvae-genomics)
-- `--experiment-name`: Name for this run
-- `--no-wandb`: Disable W&B logging
-
-### 3. Evaluation
-
-Evaluate a trained model:
-
-```bash
-python scripts/evaluate.py \
-    --checkpoint-path ./checkpoints/checkpoint_epoch_100.pt \
-    --data-path cleaned_reads.fastq \
-    --output-dir ./evaluation_results
-```
-
-**Evaluation Outputs:**
-- Reconstruction accuracy metrics
-- Codebook usage statistics
-- Example sequence reconstructions
-- JSON results file
-
-### 4. Using Configuration Files
-
-You can also use YAML configuration files instead of command-line arguments:
-
-```bash
-python scripts/train.py --config configs/default_config.yaml
-```
-
-Create custom experiment configs in `configs/experiment_configs/`.
-
-## Model Architecture
-
-### VQ-VAE Components
-
-1. **Encoder**: 
-   - Token embeddings → 1D Convolutions
-   - Maps sequences to continuous latent space
-
-2. **Vector Quantizer**:
-   - Discretizes continuous representations
-   - Uses codebook of learnable vectors
-   - Straight-through gradient estimator
-
-3. **Decoder**:
-   - 1D Convolutions → Linear projection
-   - Reconstructs sequences from discrete codes
-
-### Loss Function
-
-```
-Total Loss = Reconstruction Loss + VQ Loss + Commitment Loss
-```
-
-- **Reconstruction Loss**: Cross-entropy between input and output
-- **VQ Loss**: Codebook learning
-- **Commitment Loss**: Encourages encoder to commit to codebook entries
-
-## Experiment Tracking
-
-This project uses Weights & Biases (wandb) for experiment tracking.
-
-**Logged Metrics:**
-- Training loss (total, reconstruction, VQ)
-- Reconstruction accuracy
-- Codebook utilization
-- Model checkpoints
-
-**Setup W&B:**
-```bash
-wandb login
-```
-
-## Results and Outputs
-
-### Training Outputs
-
-- `outputs/run_YYYYMMDD_HHMMSS/`
-  - `checkpoint_epoch_N.pt`: Model checkpoints
-  - `config.json`: Training configuration
-  - `sequence_reconstructions.txt`: Example reconstructions
-
+MIT
 ### Evaluation Outputs
 
 - `evaluation_results/`

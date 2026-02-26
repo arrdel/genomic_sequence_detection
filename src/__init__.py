@@ -1,30 +1,26 @@
 """
-VQ-VAE for Genomics
+Contrastive VQ-VAE for Genomic Surveillance
 
-A Vector Quantized Variational Autoencoder (VQ-VAE) implementation for 
-genomic sequence analysis and reconstruction.
+Discrete representation learning for unsupervised viral variant detection
+in wastewater genomic sequencing data.
 
-This package provides:
-- Model architectures (VQ-VAE, Encoder, Decoder)
-- Data processing and tokenization
-- Utility functions for training and logging
+Modules:
+- models: VQ-VAE architecture (encoder, decoder, vector quantizer)
+- data: K-mer tokenization and dataset loaders
+- baselines: DNABERT-2, Standard AE, Transformer VAE, K-mer PCA
+- evaluation: Clustering, linear probing, retrieval, ablation studies
+- utils: Logging, experiment tracking
 """
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
-# from .models import VQVAE, VectorQuantizer, Encoder, Decoder
 from .models import VQVAE, Encoder, Decoder
 from .data import KmerTokenizer, FastqKmerDataset
-from .utils import init_wandb, log_metrics, finish_run
 
 __all__ = [
-    'VQVAE', 
-    'VectorQuantizer', 
-    'Encoder', 
-    'Decoder',
-    'KmerTokenizer', 
-    'FastqKmerDataset',
-    'init_wandb', 
-    'log_metrics', 
-    'finish_run'
+    "VQVAE",
+    "Encoder",
+    "Decoder",
+    "KmerTokenizer",
+    "FastqKmerDataset",
 ]

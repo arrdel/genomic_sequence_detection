@@ -1,52 +1,75 @@
-# VQ-VAE Default Configuration
-# This file contains default hyperparameters for training the VQ-VAE model
+# =============================================================================
+# Default Configuration — Contrastive VQ-VAE for Genomic Surveillance
+# =============================================================================
 
 # Data Configuration
 data:
-  data_path: "/home/adelechinda/home/semester_projects/fall_25/deep_learning/project/cleaned_reads.fastq"
+  raw_dir: "/media/scratch/adele/contrastive/raw"
+  processed_dir: "/media/scratch/adele/contrastive/processed"
+  data_path: "/media/scratch/adele/contrastive/processed/cleaned_reads.fastq"
+  reference_genome: "/media/scratch/adele/contrastive/external/NC_045512.2.fasta"
   max_seq_length: 150
   k_mer: 6
-  use_canonical: true
+  use_canonical: false
+  test_split: 0.1
 
 # Model Configuration
 model:
-  vocab_size: 4097  # 4^6 + 1 for PAD token
+  vocab_size: 4099  # 4^6 + 3 special tokens (PAD, UNK, MASK)
   num_codes: 512
   code_dim: 64
   embed_dim: 128
   hidden_dim: 256
-  commitment_cost: 0.25
+  commitment_cost: 0.1
+  ema_decay: 0.95
+  entropy_weight: 0.003
+  dropout: 0.1
 
 # Training Configuration
 training:
-  epochs: 100
-  batch_size: 64
-  learning_rate: 0.0002  # 2e-4
+  epochs: 50
+  batch_size: 32
+  learning_rate: 0.0002
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  grad_clip: 1.0
   num_workers: 4
-  recon_loss_weight: 1.0
-  save_freq: 1  # Save checkpoint every N epochs
-  log_freq: 100  # Log metrics every N batches
+  save_freq: 5
+  log_freq: 100
+
+# Masked Pretraining
+masked:
+  mask_prob: 0.2
+  epochs: 50
+
+# Contrastive Fine-tuning
+contrastive:
+  epochs: 10
+  batch_size: 64
+  learning_rate: 0.0001
+  temperature: 0.5
+  mask_prob: 0.15
+  drop_prob: 0.10
+  proj_dims: [64, 128]
 
 # GPU Configuration
 gpu:
-  n_gpu: 1
-  gpu_ids: null  # Comma-separated GPU IDs, e.g., "0,1,2"
-  no_cuda: false
+  n_gpu: 2
+  gpu_ids: "0,1"
 
-# Checkpoint Configuration
-checkpoint:
-  resume: null  # Path to checkpoint to resume from
-  save_dir: "./checkpoints"
-
-# Logging Configuration
-logging:
-  output_dir: "./outputs"
-  log_dir: "./logs"
-  wandb_project: "vqvae-genomics"
-  experiment_name: null  # Auto-generated if null
-  no_wandb: false
+# Experiment Configuration
+experiment:
+  output_dir: "/media/scratch/adele/contrastive/experiments"
+  checkpoint_dir: "/media/scratch/adele/contrastive/checkpoints"
+  seeds: [42, 123, 456, 789, 1024]
 
 # Evaluation Configuration
 evaluation:
-  eval_batches: 100
-  eval_samples_per_batch: 3
+  n_clusters: [5, 10, 15, 20]
+  num_eval_samples: 10000
+  retrieval_k: [1, 5, 10, 20]
+
+# Logging
+logging:
+  wandb_project: "contrastive-vqvae-genomics"
+  wandb_entity: null
