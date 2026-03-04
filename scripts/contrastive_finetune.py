@@ -445,6 +445,18 @@ def main():
         checkpoint_vocab_size = 4097
         checkpoint_pad_id = 4096
     
+    # Infer actual vocab size from model weights (more reliable than saved args)
+    state_dict = checkpoint['model_state_dict']
+    if list(state_dict.keys())[0].startswith('module.'):
+        state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+    if 'encoder.token_emb.weight' in state_dict:
+        actual_vocab_size = state_dict['encoder.token_emb.weight'].shape[0]
+        if actual_vocab_size != checkpoint_vocab_size:
+            print(f"  Note: Overriding saved vocab_size {checkpoint_vocab_size} with "
+                  f"actual weight shape {actual_vocab_size}")
+            checkpoint_vocab_size = actual_vocab_size
+            checkpoint_pad_id = checkpoint_vocab_size - 3  # PAD is at 4^k position
+    
     print(f"\nVQ-VAE configuration:")
     print(f"  Num codes: {num_codes}")
     print(f"  Code dim: {code_dim}")
@@ -463,13 +475,7 @@ def main():
         commitment_cost=commitment_cost
     ).to(device)
     
-    # Load weights
-    state_dict = checkpoint['model_state_dict']
-    
-    # Handle DataParallel models: remove 'module.' prefix if present
-    if list(state_dict.keys())[0].startswith('module.'):
-        state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
-    
+    # Load weights (state_dict already cleaned of 'module.' prefix above)
     base_model.load_state_dict(state_dict)
     base_model.eval()
     
