@@ -488,10 +488,17 @@ def main():
             config=vars(args)
         )
     
-    # Initialize model
-    PAD_ID = args.vocab_size - 1
+    # Create tokenizer first so we get the correct vocab size
+    tokenizer = KmerTokenizer(k=args.k_mer, use_canonical=True)
+    VOCAB_SIZE = len(tokenizer.stoi)
+    PAD_ID = tokenizer.pad_id
+    
+    # Override args.vocab_size so it's correctly saved in checkpoints
+    args.vocab_size = VOCAB_SIZE
+    
+    # Initialize model with actual tokenizer vocab size
     model = VQVAE(
-        args.vocab_size, 
+        VOCAB_SIZE, 
         PAD_ID, 
         num_codes=args.num_codes,
         code_dim=args.code_dim,
@@ -510,7 +517,6 @@ def main():
         wandb.watch(model, log="all")
     
     # Create dataset and split into train/test
-    tokenizer = KmerTokenizer(k=args.k_mer, use_canonical=True)
     full_dataset = FastqKmerDataset(args.data_path, tokenizer, max_len=args.max_seq_length)
     
     # Split dataset into train and test

@@ -433,6 +433,18 @@ def main():
         vocab_size = 4097
         pad_id = 4096
     
+    # Infer actual vocab size from model weights (more reliable than saved args)
+    state_dict = checkpoint['model_state_dict']
+    if list(state_dict.keys())[0].startswith('module.'):
+        state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+    if 'encoder.token_emb.weight' in state_dict:
+        actual_vocab_size = state_dict['encoder.token_emb.weight'].shape[0]
+        if actual_vocab_size != vocab_size:
+            print(f"  Note: Overriding saved vocab_size {vocab_size} with "
+                  f"actual weight shape {actual_vocab_size}")
+            vocab_size = actual_vocab_size
+            pad_id = vocab_size - 3  # PAD is at 4^k position
+    
     print(f"  Model config: vocab={vocab_size}, codes={num_codes}, code_dim={code_dim}")
     print(f"  Encoder output dim: {code_dim}")
     
@@ -447,10 +459,7 @@ def main():
         commitment_cost=commitment_cost
     ).to(device)
     
-    # Load VQ-VAE weights
-    state_dict = checkpoint['model_state_dict']
-    if list(state_dict.keys())[0].startswith('module.'):
-        state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
+    # Load VQ-VAE weights (state_dict already cleaned of 'module.' prefix above)
     base_model.load_state_dict(state_dict)
     
     print("✓ VQ-VAE checkpoint loaded successfully")

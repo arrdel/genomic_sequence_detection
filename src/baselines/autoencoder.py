@@ -53,9 +53,9 @@ class StandardAutoencoder(nn.Module):
         )
         
         # Optional bottleneck
-        if bottleneck_dim != latent_dim:
-            self.bottleneck_down = nn.Linear(latent_dim, bottleneck_dim)
-            self.bottleneck_up = nn.Linear(bottleneck_dim, latent_dim)
+        if self.bottleneck_dim != latent_dim:
+            self.bottleneck_down = nn.Linear(latent_dim, self.bottleneck_dim)
+            self.bottleneck_up = nn.Linear(self.bottleneck_dim, latent_dim)
         else:
             self.bottleneck_down = None
             self.bottleneck_up = None

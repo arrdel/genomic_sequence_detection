@@ -136,9 +136,11 @@ def main():
     
     if args.gpu_ids:
         gpu_ids = [int(x) for x in args.gpu_ids.split(",")]
-    else:
+    elif args.n_gpu > 0:
         gpu_ids = list(range(args.n_gpu))
-    device = torch.device(f"cuda:{gpu_ids[0]}" if torch.cuda.is_available() else "cpu")
+    else:
+        gpu_ids = []
+    device = torch.device(f"cuda:{gpu_ids[0]}" if gpu_ids and torch.cuda.is_available() else "cpu")
     
     tokenizer = KmerTokenizer(k=6)
     dataset = FastqKmerDataset(args.data_path, tokenizer, max_len=150)
