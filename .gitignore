@@ -235,3 +235,28 @@ evaluation_results*/
 # Project-specific folders to ignore
 drawio/
 report/
+paper/
+
+# Markdown files (except README)
+IMPROVEMENTS.md
+PAPER_EXPLAINED.md
+
+# LaTeX files
+*.tex
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Training logs
+training_log.txt
+
+# Combined evaluation results
+experiments/combined_evaluation_results.json
+experiments/full_evaluation/
+
+# Resume/tmux helper scripts (not needed for execution)
+scripts/resume_phase*.sh
+scripts/tmux_setup.sh
