@@ -130,7 +130,7 @@ def evaluate_linear_probe(
         for seed in random_seeds:
             if clf_name == "logistic":
                 clf = LogisticRegression(
-                    max_iter=1000, random_state=seed, multi_class="multinomial"
+                    max_iter=2000, random_state=seed
                 )
             elif clf_name == "knn":
                 clf = KNeighborsClassifier(n_neighbors=5)
