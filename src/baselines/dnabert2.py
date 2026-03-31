@@ -52,9 +52,16 @@ class DNABERT2Baseline(nn.Module):
         self.proj_head = None
         
     def _load_model(self):
-        """Lazy load DNABERT-2 model and tokenizer."""
+        """Lazy load DNABERT-2 model and tokenizer.
+        
+        Uses dynamic module loading to bypass AutoModel config_class mismatch
+        with newer transformers/huggingface_hub versions, and disables the
+        Triton-based flash attention (incompatible with Triton>=3.x) in favour
+        of the built-in PyTorch fallback.
+        """
         try:
-            from transformers import AutoTokenizer, AutoModel
+            from transformers import AutoTokenizer, AutoConfig
+            from transformers.dynamic_module_utils import get_class_from_dynamic_module
         except ImportError:
             raise ImportError(
                 "transformers library required for DNABERT-2 baseline. "
@@ -65,8 +72,30 @@ class DNABERT2Baseline(nn.Module):
         self._tokenizer = AutoTokenizer.from_pretrained(
             self.model_name, trust_remote_code=True
         )
-        self._model = AutoModel.from_pretrained(
+        
+        # Load config to discover the custom model class
+        config = AutoConfig.from_pretrained(
             self.model_name, trust_remote_code=True
+        )
+        
+        # Resolve the custom BertModel class from DNABERT-2's dynamic module
+        # (bypasses AutoModel.register config_class mismatch)
+        model_class_ref = config.auto_map["AutoModel"]
+        ModelClass = get_class_from_dynamic_module(
+            model_class_ref, self.model_name
+        )
+        
+        # Disable Triton flash attention (incompatible with Triton >= 3.x).
+        # DNABERT-2's bert_layers.py falls back to standard PyTorch attention
+        # when flash_attn_qkvpacked_func is None.
+        import sys
+        bert_layers_mod = sys.modules.get(ModelClass.__module__)
+        if bert_layers_mod is not None:
+            bert_layers_mod.flash_attn_qkvpacked_func = None
+            print("  ✓ Disabled Triton flash-attn (using PyTorch fallback)")
+        
+        self._model = ModelClass.from_pretrained(
+            self.model_name, config=config
         )
         self._hidden_dim = self._model.config.hidden_size
         
@@ -90,22 +119,24 @@ class DNABERT2Baseline(nn.Module):
         
         print(f"  ✓ Model loaded ({self._hidden_dim}-dim hidden)")
     
-    @property
-    def model(self):
+    def _ensure_loaded(self):
+        """Ensure model and tokenizer are loaded."""
         if self._model is None:
             self._load_model()
+
+    def get_model(self):
+        """Get the underlying model, loading if needed."""
+        self._ensure_loaded()
         return self._model
-    
-    @property 
-    def tokenizer(self):
-        if self._tokenizer is None:
-            self._load_model()
+
+    def get_tokenizer(self):
+        """Get the underlying tokenizer, loading if needed."""
+        self._ensure_loaded()
         return self._tokenizer
-    
-    @property
-    def hidden_dim(self):
-        if self._hidden_dim is None:
-            self._load_model()
+
+    def get_hidden_dim(self):
+        """Get hidden dimension, loading model if needed."""
+        self._ensure_loaded()
         return self._hidden_dim
     
     def encode_sequences(
@@ -127,8 +158,8 @@ class DNABERT2Baseline(nn.Module):
         Returns:
             embeddings: np.ndarray of shape (N, D)
         """
-        _ = self.model  # ensure loaded
-        self.model.eval()
+        self._ensure_loaded()
+        self._model.eval()
         
         all_embeddings = []
         
@@ -141,7 +172,7 @@ class DNABERT2Baseline(nn.Module):
                 batch_seqs = sequences[start_idx:start_idx + batch_size]
                 
                 # Tokenize
-                inputs = self.tokenizer(
+                inputs = self._tokenizer(
                     batch_seqs,
                     return_tensors="pt",
                     padding=True,
@@ -151,8 +182,8 @@ class DNABERT2Baseline(nn.Module):
                 inputs = {k: v.to(self.device_name) for k, v in inputs.items()}
                 
                 # Forward pass
-                outputs = self.model(**inputs)
-                hidden_states = outputs.last_hidden_state  # (B, L, D)
+                outputs = self._model(**inputs)
+                hidden_states = outputs[0] if isinstance(outputs, tuple) else outputs.last_hidden_state  # (B, L, D)
                 
                 # Pool
                 if self.pool_strategy == "cls":
@@ -202,9 +233,8 @@ class DNABERT2Baseline(nn.Module):
     
     def forward(self, sequences: List[str], max_length: int = 512):
         """Forward pass for training (e.g., linear probing)."""
-        _ = self.model  # ensure loaded
-        
-        inputs = self.tokenizer(
+        self._ensure_loaded()        
+        inputs = self._tokenizer(
             sequences,
             return_tensors="pt",
             padding=True,
@@ -215,11 +245,11 @@ class DNABERT2Baseline(nn.Module):
         
         if self.freeze_backbone:
             with torch.no_grad():
-                outputs = self.model(**inputs)
+                outputs = self._model(**inputs)
         else:
-            outputs = self.model(**inputs)
+            outputs = self._model(**inputs)
         
-        hidden_states = outputs.last_hidden_state
+        hidden_states = outputs[0] if isinstance(outputs, tuple) else outputs.last_hidden_state
         
         # Pool
         if self.pool_strategy == "mean":
