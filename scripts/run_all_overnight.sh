@@ -55,6 +55,13 @@ echo "  Output: ${VQVAE_DIR}"
 echo "  Started: $(date)"
 echo "============================================================"
 
+VQVAE_RESUME="${VQVAE_DIR}/vqvae_base/best_model.pt"
+RESUME_FLAG=""
+if [ -f "${VQVAE_RESUME}" ]; then
+    echo "  Resuming from checkpoint: ${VQVAE_RESUME}"
+    RESUME_FLAG="--resume ${VQVAE_RESUME}"
+fi
+
 python -u scripts/vqvae_train.py \
     --data-path "${DATA_PATH}" \
     --output-dir "${VQVAE_DIR}" \
@@ -70,7 +77,8 @@ python -u scripts/vqvae_train.py \
     --learning-rate 2e-4 \
     --seed ${SEED} \
     --save-freq 5 \
-    --no-wandb
+    --no-wandb \
+    ${RESUME_FLAG}
 
 echo "  PHASE 1 COMPLETE: $(date)"
 
