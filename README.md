@@ -12,66 +12,6 @@ Wastewater-based genomic surveillance requires methods that can detect emerging 
 
 The model operates on canonical 6-mer tokenized sequences (vocabulary of 2,080 tokens) and achieves strong unsupervised clustering of viral lineages with only ~450K parameters.
 
-## Project Structure
-
-```
-genomic_sequence_detection/
-├── configs/
-│   ├── default_config.yaml              # Default hyperparameters
-│   └── experiment_configs/
-│       └── large_model.yaml             # Large model configuration
-├── scripts/
-│   ├── Training
-│   │   ├── vqvae_train.py               # Train base VQ-VAE
-│   │   ├── mqvae_train.py               # Train Masked VQ-VAE
-│   │   ├── contrastive_finetune.py      # Contrastive fine-tuning (64-dim)
-│   │   ├── contrastive_finetune_128dim.py  # Contrastive fine-tuning (128-dim)
-│   │   ├── train_autoencoder.py         # Standard autoencoder baseline
-│   │   └── train_transformer_vae.py     # Transformer VAE baseline (DDP)
-│   ├── Evaluation
-│   │   ├── evaluation.py                # Model comparison evaluation
-│   │   ├── vqvae_evaluate.py            # VQ-VAE evaluation
-│   │   ├── mqvae_evaluate.py            # Masked VQ-VAE evaluation
-│   │   ├── contrastive_evaluate.py      # Contrastive model evaluation
-│   │   ├── run_full_downstream_eval.py  # Full 8-model downstream evaluation
-│   │   └── extract_embeddings.py        # Embedding extraction
-│   ├── Ablation Studies
-│   │   ├── run_ablation_study.py        # Ablation study runner (5 studies, DDP)
-│   │   ├── run_entropy_ablation.py      # Entropy regularization lambda sweep
-│   │   ├── run_all_ablations.sh         # Sequential ablation launcher
-│   │   └── launch_ablation_study.sh     # DDP ablation launcher
-│   ├── Visualization
-│   │   ├── generate_paper_figures.py    # Publication-quality figures
-│   │   ├── analyze_codebook.py          # Codebook utilization analysis
-│   │   ├── create_4model_visualization.py  # t-SNE/UMAP comparisons
-│   │   └── visualize_clustering_improvements.py
-│   ├── Pipelines
-│   │   ├── run_experiment.py            # Unified experiment CLI
-│   │   ├── masked_vq_train.sh           # Full overnight training pipeline
-│   │   ├── run_all_overnight.sh         # Multi-GPU overnight pipeline
-│   │   ├── run_all_ailab1.sh            # RTX 4090 multi-GPU pipeline
-│   │   └── launch_downstream_eval.sh    # Downstream evaluation launcher
-│   └── preprocess.py                    # Data preprocessing (Trimmomatic + FastQC)
-├── src/
-│   ├── models/
-│   │   └── vqvae.py                     # VQ-VAE with EMA codebook + entropy bonus
-│   ├── data/
-│   │   └── tokenizer.py                 # KmerTokenizer + FastqKmerDataset
-│   ├── baselines/
-│   │   ├── dnabert2.py                  # DNABERT-2 pretrained baseline
-│   │   ├── autoencoder.py               # Standard autoencoder (no VQ)
-│   │   ├── transformer_vae.py           # Transformer VAE with attention
-│   │   └── kmer_pca.py                  # K-mer frequency + PCA baseline
-│   ├── evaluation/
-│   │   ├── __init__.py                  # Clustering, linear probe, retrieval, anomaly
-│   │   └── ablation.py                  # Ablation study configuration generator
-│   └── utils/
-│       ├── shuffle_sequences.py         # Sequence shuffling utilities
-│       └── wandb_init.py                # Weights & Biases initialization
-├── experiments/                          # Experiment outputs (gitignored)
-└── requirements.txt
-```
-
 ## Requirements
 
 - Python 3.9+
@@ -218,16 +158,6 @@ python scripts/run_experiment.py train-vqvae --config configs/experiment_configs
 
 See `configs/default_config.yaml` for the full list of configurable parameters.
 
-## Citation
-
-```bibtex
-@inproceedings{chinda2025maskedvqseq,
-  title={MaskedVQ-Seq: Discrete Representation Learning for Unsupervised 
-         Viral Variant Detection in Wastewater Sequencing},
-  author={Chinda, Adele and Azumah, Richmond and Venkateswara, Hemanth},
-  year={2025}
-}
-```
 
 ## References
 
