@@ -304,18 +304,6 @@ variants = create_synthetic_variants(
 4. **Data Augmentation**: Higher augmentation rates provide more training signal
 5. **Temperature**: Lower temperature (0.05-0.1) works well for genomic sequences
 
-## Citation
-
-If you use this framework in your research, please cite:
-
-```bibtex
-@software{genomic_sequence_detection,
-  title={Contrastive Deep Learning for Variant Detection in Wastewater Genomic Sequencing},
-  author={Genomic Detection Team},
-  year={2025},
-  url={https://github.com/arrdel/genomic_sequence_detection}
-}
-```
 
 ## License
 
