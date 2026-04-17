@@ -8,7 +8,7 @@
 # ──────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-CONDA_ENV="/home/adelechinda/local_conda_envs/contrastive_env"
+CONDA_ENV="/path/to/conda/env"
 PROJECT_DIR="$HOME/projects/genomic_sequence_detection"
 DATA="$HOME/data/contrastive/processed/subset_1M.fastq"
 EXP_DIR="$HOME/data/contrastive/experiments/ablations"

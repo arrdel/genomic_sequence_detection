@@ -22,7 +22,7 @@ conda activate vqvae_env
 echo "Python: $(which python)"
 
 # ---------- paths ----------
-DATA_DIR="/media/scratch/adele/contrastive"
+DATA_DIR="/path/to/data"
 DATA="${DATA_DIR}/processed/cleaned_reads.fastq"
 EXP="${DATA_DIR}/experiments"
 PROJ="$(cd "$(dirname "$0")/.." && pwd)"

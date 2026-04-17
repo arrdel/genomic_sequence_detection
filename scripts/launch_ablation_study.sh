@@ -12,10 +12,10 @@ set -euo pipefail
 STUDY="${1:-all}"
 OVERRIDE_EPOCHS="${2:-}"
 
-CONDA_ENV="/home/adelechinda/local_conda_envs/contrastive_env"
-PROJECT="/home/adelechinda/projects/genomic_sequence_detection"
-DATA="/home/adelechinda/data/contrastive/processed/subset_1M.fastq"
-OUT_DIR="/home/adelechinda/data/contrastive/experiments/ablations"
+CONDA_ENV="/path/to/conda/env"
+PROJECT="/path/to/project"
+DATA="/path/to/data/processed/subset_1M.fastq"
+OUT_DIR="/path/to/data/experiments/ablations"
 
 export CUDA_VISIBLE_DEVICES=2,3,4,5
 

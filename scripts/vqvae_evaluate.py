@@ -6,7 +6,7 @@ Usage:
     python vqvae_evaluate.py --checkpoint-path ./checkpoints/checkpoint_epoch_100.pt --data-path /path/to/data
     
     
-    python scripts/vqvae_evaluate.py --checkpoint-path outputs/vqvae_taining_1/checkpoint_epoch_6.pt --data-path /home/adelechinda/home/semester_projects/fall_25/deep_learning/project/cleaned_reads.fastq;
+    python scripts/vqvae_evaluate.py --checkpoint-path outputs/vqvae_taining_1/checkpoint_epoch_6.pt --data-path /path/to/data/cleaned_reads.fastq;
 """
 
 import os

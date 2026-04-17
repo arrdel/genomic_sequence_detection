@@ -4,8 +4,8 @@ Train Standard Autoencoder Baseline (no vector quantization)
 
 Usage:
     python scripts/train_autoencoder.py \
-        --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq \
-        --output-dir /media/scratch/adele/contrastive/experiments/autoencoder \
+        --data-path /path/to/data/processed/cleaned_reads.fastq \
+        --output-dir /path/to/data/experiments/autoencoder \
         --epochs 50 --batch-size 32 --n-gpu 2
 """
 

@@ -11,33 +11,33 @@ Runs all experiments from a single entry point:
 Usage:
     # Train base VQ-VAE
     python scripts/run_experiment.py train-vqvae \
-        --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq \
-        --output-dir /media/scratch/adele/contrastive/experiments/vqvae
+        --data-path /path/to/data/processed/cleaned_reads.fastq \
+        --output-dir /path/to/data/experiments/vqvae
 
     # Train masked VQ-VAE
     python scripts/run_experiment.py train-masked \
-        --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq \
-        --output-dir /media/scratch/adele/contrastive/experiments/masked
+        --data-path /path/to/data/processed/cleaned_reads.fastq \
+        --output-dir /path/to/data/experiments/masked
 
     # Contrastive fine-tuning
     python scripts/run_experiment.py train-contrastive \
-        --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq \
-        --checkpoint /media/scratch/adele/contrastive/experiments/vqvae/best_model.pt \
-        --output-dir /media/scratch/adele/contrastive/experiments/contrastive
+        --data-path /path/to/data/processed/cleaned_reads.fastq \
+        --checkpoint /path/to/data/experiments/vqvae/best_model.pt \
+        --output-dir /path/to/data/experiments/contrastive
 
     # Run DNABERT-2 baseline
     python scripts/run_experiment.py baseline-dnabert2 \
-        --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq \
-        --output-dir /media/scratch/adele/contrastive/experiments/dnabert2
+        --data-path /path/to/data/processed/cleaned_reads.fastq \
+        --output-dir /path/to/data/experiments/dnabert2
 
     # Run all ablations
     python scripts/run_experiment.py ablation \
         --study codebook_size \
-        --data-path /media/scratch/adele/contrastive/processed/cleaned_reads.fastq
+        --data-path /path/to/data/processed/cleaned_reads.fastq
 
     # Full evaluation of all models
     python scripts/run_experiment.py evaluate-all \
-        --results-dir /media/scratch/adele/contrastive/experiments
+        --results-dir /path/to/data/experiments
 """
 
 import os

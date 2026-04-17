@@ -6,7 +6,7 @@ Usage:
     python -u vqvae_train.py.py --data-path /path/to/data --output-dir ./outputs --n-gpu 2 --batch-size 64 --epochs 100
     
     python -u scripts/train.py \
-  --data-path /home/adelechinda/home/semester_projects/fall_25/deep_learning/project/cleaned_reads.fastq \
+  --data-path /path/to/data/cleaned_reads.fastq \
   --output-dir ./outputs \
   --experiment-name vqvae_train_run_4 \
   --n-gpu 4 \

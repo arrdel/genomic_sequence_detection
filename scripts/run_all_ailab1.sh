@@ -16,11 +16,11 @@
 set -e  # Exit on any error
 
 # ---- Configuration (ai-lab1 paths) ----
-export HF_HOME=/home/adelechinda/data/huggingface_cache
+export HF_HOME=/path/to/huggingface_cache
 export CUDA_VISIBLE_DEVICES=2,3,4,5
 
-PROJECT_DIR="/home/adelechinda/projects/genomic_sequence_detection"
-DATA_DIR="/home/adelechinda/data/contrastive"
+PROJECT_DIR="/path/to/project"
+DATA_DIR="/path/to/data"
 DATA_PATH="${DATA_DIR}/processed/subset_1M.fastq"
 EXPERIMENT_DIR="${DATA_DIR}/experiments"
 
@@ -30,8 +30,8 @@ BATCH_SIZE=48  # per-GPU batch for 24GB 4090s; effective = 48*4 = 192
 SEED=42
 
 # Activate conda (local NVMe env — not NAS)
-source /home/adelechinda/miniconda3/etc/profile.d/conda.sh
-conda activate /home/adelechinda/local_conda_envs/contrastive_env
+source /path/to/conda.sh
+conda activate /path/to/conda/env
 
 cd "$PROJECT_DIR"
 

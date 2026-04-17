@@ -1,4 +1,4 @@
-# MaskedVQ-Seq: Discrete Representation Learning for Genomic Surveillance
+# Reference-Free Variant Detection in Wastewater Genomic Surveillance via Masked Vector-Quantized Autoencoders
 
 A framework for unsupervised viral variant detection in wastewater genomic sequencing data. MaskedVQ-Seq learns interpretable codebooks of genomic patterns from canonical k-mer tokenized sequences using Vector-Quantized Variational Autoencoders (VQ-VAE), extended with masked reconstruction pretraining, entropy-regularized codebook learning, and contrastive fine-tuning.
 
@@ -21,7 +21,7 @@ The model operates on canonical 6-mer tokenized sequences (vocabulary of 2,080 t
 ## Installation
 
 ```bash
-git clone https://github.com/arrdel/genomic_sequence_detection.git
+git clone https://github.com/anonymous/genomic_sequence_detection.git
 cd genomic_sequence_detection
 pip install -r requirements.txt
 ```

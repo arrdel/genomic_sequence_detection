@@ -17,11 +17,11 @@
 set -e  # Exit on any error
 
 # ---- Configuration ----
-export HF_HOME=/shared/achinda1/huggingface_cache
+export HF_HOME=/path/to/huggingface_cache
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 
-PROJECT_DIR="/home/achinda1/projects/genomic_sequence_detection"
-DATA_DIR="/home/achinda1/datasets/contrastive"
+PROJECT_DIR="/path/to/project"
+DATA_DIR="/path/to/data"
 DATA_PATH="${DATA_DIR}/processed/subset_1M.fastq"  # 1M reads for main training
 EXPERIMENT_DIR="${DATA_DIR}/experiments"
 
@@ -31,7 +31,7 @@ BATCH_SIZE=64  # per-GPU batch size; effective batch = 64 * 8 = 512
 SEED=42
 
 # Activate conda
-source /home/achinda1/miniconda3/etc/profile.d/conda.sh
+source /path/to/conda.sh
 conda activate contrastive_env
 
 cd "$PROJECT_DIR"
@@ -248,7 +248,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Subset
 sys.path.insert(0, '${PROJECT_DIR}')
-os.environ['HF_HOME'] = '/shared/achinda1/huggingface_cache'
+os.environ['HF_HOME'] = '/path/to/huggingface_cache'
 
 from src.baselines.dnabert2 import DNABERT2Baseline
 from src.data import KmerTokenizer, FastqKmerDataset

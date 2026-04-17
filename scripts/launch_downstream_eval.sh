@@ -5,9 +5,9 @@
 # ──────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-CONDA_ENV="/home/adelechinda/local_conda_envs/contrastive_env"
-PROJECT="/home/adelechinda/projects/genomic_sequence_detection"
-EXP_DIR="/home/adelechinda/data/contrastive/experiments"
+CONDA_ENV="/path/to/conda/env"
+PROJECT="/path/to/project"
+EXP_DIR="/path/to/data/experiments"
 OUT_DIR="${EXP_DIR}/full_evaluation"
 
 echo "═══════════════════════════════════════════════════════════════"

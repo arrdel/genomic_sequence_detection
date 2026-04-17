@@ -10,7 +10,7 @@ This script creates detailed visualizations of VQ-VAE codebook usage:
 Usage:
     python scripts/analyze_codebook.py \
         --checkpoint-path experiments/1_standard_vqvae/checkpoints/best_model.pt \
-        --data-path /home/adelechinda/home/semester_projects/fall_25/deep_learning/project/data/cleaned_reads.fastq\
+        --data-path /path/to/data/data/cleaned_reads.fastq\
         --output-dir experiments/1_standard_vqvae/codebook_analysis \
         --num-samples 5000
 """

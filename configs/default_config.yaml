@@ -4,10 +4,10 @@
 
 # Data Configuration
 data:
-  raw_dir: "/home/achinda1/datasets/contrastive/raw"
-  processed_dir: "/home/achinda1/datasets/contrastive/processed"
-  data_path: "/home/achinda1/datasets/contrastive/processed/cleaned_reads.fastq"
-  reference_genome: "/home/achinda1/datasets/contrastive/external/NC_045512.2.fasta"
+  raw_dir: "/path/to/data/raw"
+  processed_dir: "/path/to/data/processed"
+  data_path: "/path/to/data/processed/cleaned_reads.fastq"
+  reference_genome: "/path/to/data/external/NC_045512.2.fasta"
   max_seq_length: 150
   k_mer: 6
   use_canonical: false
@@ -59,8 +59,8 @@ gpu:
 
 # Experiment Configuration
 experiment:
-  output_dir: "/home/achinda1/datasets/contrastive/experiments"
-  checkpoint_dir: "/home/achinda1/datasets/contrastive/checkpoints"
+  output_dir: "/path/to/data/experiments"
+  checkpoint_dir: "/path/to/data/checkpoints"
   seeds: [42, 123, 456, 789, 1024]
 
 # Evaluation Configuration
