@@ -129,6 +129,7 @@ def load_vqvae(checkpoint_path, device, tokenizer):
     
     model = VQVAE(
         vocab_size=vocab_size,
+        pad_id=tokenizer.pad_id,
         embed_dim=embed_dim,
         num_codes=num_codes,
         code_dim=code_dim,
