@@ -62,6 +62,7 @@ if [ -f "${VQVAE_RESUME}" ]; then
     RESUME_FLAG="--resume ${VQVAE_RESUME}"
 fi
 
+
 python -u scripts/vqvae_train.py \
     --data-path "${DATA_PATH}" \
     --output-dir "${VQVAE_DIR}" \
