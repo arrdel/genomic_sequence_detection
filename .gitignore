@@ -165,6 +165,8 @@ $RECYCLE.BIN/
 # Ignore images in experiment results but keep docs images
 *.png
 !docs/static/images/*.png
+!paper/**/*.png
+!paper/**/*.pdf
 *.jpg
 *.jpeg
 *.gif
@@ -236,7 +238,6 @@ evaluation_results*/
 # Project-specific folders to ignore
 drawio/
 report/
-paper/
 
 # Markdown files (except README)
 IMPROVEMENTS.md
