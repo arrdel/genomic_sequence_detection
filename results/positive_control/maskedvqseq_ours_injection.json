@@ -1,0 +1,68 @@
+{
+  "model_name": "MaskedVQ-Seq (Ours)",
+  "embeddings_path": "data/synthetic_lineages/maskedvq-seq_ours_embeddings.npy",
+  "ref_fraction": 0.5,
+  "seed": 42,
+  "results": [
+    {
+      "injection_rate_target": 0.01,
+      "injection_rate_actual": 0.01009701049297169,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 51,
+      "auroc": 0.5223333333333333,
+      "auprc": 0.01035097748483831,
+      "tpr_at_fpr5pct": 0.0,
+      "random_auprc_baseline": 0.01009701049297169
+    },
+    {
+      "injection_rate_target": 0.02,
+      "injection_rate_actual": 0.0199921599372795,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 102,
+      "auroc": 0.508343137254902,
+      "auprc": 0.021617756985806,
+      "tpr_at_fpr5pct": 0.029411764705882353,
+      "random_auprc_baseline": 0.0199921599372795
+    },
+    {
+      "injection_rate_target": 0.05,
+      "injection_rate_actual": 0.04997149914497435,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 263,
+      "auroc": 0.4979410646387833,
+      "auprc": 0.05023956855370231,
+      "tpr_at_fpr5pct": 0.053231939163498096,
+      "random_auprc_baseline": 0.04997149914497435
+    },
+    {
+      "injection_rate_target": 0.1,
+      "injection_rate_actual": 0.10007199424046076,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 556,
+      "auroc": 0.5153408273381295,
+      "auprc": 0.1041400556069326,
+      "tpr_at_fpr5pct": 0.05755395683453238,
+      "random_auprc_baseline": 0.10007199424046076
+    },
+    {
+      "injection_rate_target": 0.2,
+      "injection_rate_actual": 0.2,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 1250,
+      "auroc": 0.5083372,
+      "auprc": 0.20847864335088376,
+      "tpr_at_fpr5pct": 0.06,
+      "random_auprc_baseline": 0.2
+    },
+    {
+      "injection_rate_target": 0.5,
+      "injection_rate_actual": 0.5,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 5000,
+      "auroc": 0.50427718,
+      "auprc": 0.5065903672037205,
+      "tpr_at_fpr5pct": 0.0592,
+      "random_auprc_baseline": 0.5
+    }
+  ]
+}

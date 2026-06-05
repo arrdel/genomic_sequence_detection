@@ -122,6 +122,10 @@ cleaned_reads*
 evaluation_results/
 trash/
 
+# Keep positive control and lineage eval results
+!results/
+!results/**
+
 # macOS
 .DS_Store
 .AppleDouble

@@ -1,0 +1,60 @@
+{
+  "model": "contrastive_128d",
+  "embeddings_path": "data/synthetic_lineages/contrastive_128d_embeddings.npy",
+  "labels_path": "data/synthetic_lineages/labels.tsv",
+  "n_samples": 30000,
+  "embedding_dim": 128,
+  "true_label_structure": {
+    "n_samples": 30000,
+    "n_lineages": 3,
+    "lineage_counts": {
+      "delta": 10000,
+      "omicron": 10000,
+      "wuhan": 10000
+    },
+    "true_label_silhouette": -0.0008380155195482075,
+    "kmeans_vs_true_labels": {
+      "adjusted_rand_index": 4.996044699374995e-06,
+      "normalized_mutual_info": 6.752501739881374e-05
+    },
+    "lineage_probe": {
+      "knn_accuracy_mean": 0.36819999999999997,
+      "knn_f1_macro_mean": 0.36077819531599914,
+      "logistic_accuracy_mean": 0.33740000000000003,
+      "logistic_f1_macro_mean": 0.33626535425615267,
+      "cv_folds": 5
+    }
+  },
+  "retrieval": {
+    "precision@1": {
+      "mean": 0.38506666666666667,
+      "std": 0.4866110653169417
+    },
+    "precision@5": {
+      "mean": 0.36428666666666676,
+      "std": 0.23471519867466803
+    },
+    "precision@10": {
+      "mean": 0.3537766666666667,
+      "std": 0.16873767645536533
+    }
+  },
+  "pair_separation": {
+    "labels": [
+      "wuhan",
+      "omicron"
+    ],
+    "n_samples": 20000,
+    "centroid_distance": 0.16188167035579681,
+    "nearest_centroid_balanced_accuracy": 0.51215,
+    "label_b_auroc": 0.515978615
+  },
+  "held_out_novelty": {
+    "held_out_label": "omicron",
+    "held_out_fraction": 0.3333333333333333,
+    "distance_to_known_centroid_auroc": 0.5005514575,
+    "distance_to_known_centroid_auprc": 0.33284944504945524,
+    "mean_score_known": 11.144667775238675,
+    "mean_score_held_out": 11.139601292347061
+  }
+}

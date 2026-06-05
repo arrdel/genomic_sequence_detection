@@ -1,0 +1,68 @@
+{
+  "model_name": "Contrastive-128d",
+  "embeddings_path": "data/synthetic_lineages/contrastive_128d_embeddings.npy",
+  "ref_fraction": 0.5,
+  "seed": 42,
+  "results": [
+    {
+      "injection_rate_target": 0.01,
+      "injection_rate_actual": 0.01009701049297169,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 51,
+      "auroc": 0.5009764705882352,
+      "auprc": 0.010927351205603762,
+      "tpr_at_fpr5pct": 0.058823529411764705,
+      "random_auprc_baseline": 0.01009701049297169
+    },
+    {
+      "injection_rate_target": 0.02,
+      "injection_rate_actual": 0.0199921599372795,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 102,
+      "auroc": 0.46183921568627445,
+      "auprc": 0.01859109667676337,
+      "tpr_at_fpr5pct": 0.0392156862745098,
+      "random_auprc_baseline": 0.0199921599372795
+    },
+    {
+      "injection_rate_target": 0.05,
+      "injection_rate_actual": 0.04997149914497435,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 263,
+      "auroc": 0.486112927756654,
+      "auprc": 0.05219024631449868,
+      "tpr_at_fpr5pct": 0.04182509505703422,
+      "random_auprc_baseline": 0.04997149914497435
+    },
+    {
+      "injection_rate_target": 0.1,
+      "injection_rate_actual": 0.10007199424046076,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 556,
+      "auroc": 0.4881926258992806,
+      "auprc": 0.09735228297119003,
+      "tpr_at_fpr5pct": 0.05575539568345324,
+      "random_auprc_baseline": 0.10007199424046076
+    },
+    {
+      "injection_rate_target": 0.2,
+      "injection_rate_actual": 0.2,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 1250,
+      "auroc": 0.50397424,
+      "auprc": 0.2031210806936813,
+      "tpr_at_fpr5pct": 0.056,
+      "random_auprc_baseline": 0.2
+    },
+    {
+      "injection_rate_target": 0.5,
+      "injection_rate_actual": 0.5,
+      "n_wuhan_test": 5000,
+      "n_omicron_injected": 5000,
+      "auroc": 0.5007213800000001,
+      "auprc": 0.499764247258038,
+      "tpr_at_fpr5pct": 0.0496,
+      "random_auprc_baseline": 0.5
+    }
+  ]
+}
