@@ -171,6 +171,7 @@ $RECYCLE.BIN/
 !docs/static/images/*.png
 !paper/**/*.png
 !paper/**/*.pdf
+!paper/**/*.tex
 *.jpg
 *.jpeg
 *.gif

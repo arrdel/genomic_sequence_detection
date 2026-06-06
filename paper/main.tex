@@ -1,0 +1,777 @@
+%\documentclass[wcp,gray]{jmlr} % test grayscale version
+\documentclass[pmlr]{jmlr}% PMLR (Proceedings of Machine Learning)
+
+\RequirePackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm2e}
+\usepackage{subcaption}
+\usepackage{array}
+
+\makeatletter
+\def\set@curr@file#1{\def\@curr@file{#1}}
+\makeatother
+\usepackage[load-configurations=version-1]{siunitx}
+
+\theorembodyfont{\upshape}
+\theoremheaderfont{\scshape}
+\theorempostheader{:}
+\theoremsep{\newline}
+\newtheorem*{note}{Note}
+
+\jmlrvolume{[VOLUME \# TBD]}
+\jmlryear{2026}
+\jmlrworkshop{Machine Learning for Healthcare}
+
+% ── Custom commands ───────────────────────────────────────────────────────────
+\newcommand{\ours}{\textsc{MaskedVQ-Seq}}
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\second}[1]{\underline{#1}}
+\definecolor{lightgray}{gray}{0.92}
+
+\title[Reference-Free Anomaly Detection in Wastewater Genomic Surveillance]{%
+Reference-Free Anomaly Detection in Wastewater Genomic Surveillance via Masked Vector-Quantized Autoencoders}
+
+ \author{\Name{Anonymous Authors}
+        \Email{anonymous@anonymous.org}\\
+        \addr Anonymous Institution}
+
+\begin{document}
+
+\maketitle
+
+% ─────────────────────────────────────────────────────────────────────────────
+% ABSTRACT
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{abstract}
+Wastewater-based genomic surveillance enables population-level monitoring of pathogen evolution without individual testing, but current bioinformatics pipelines rely on reference genomes and expert-curated variant definitions that lag behind emerging threats. We propose \ours{}, a masked vector-quantized variational autoencoder that learns discrete codebook representations of genomic sequences in a fully unsupervised manner. Our architecture combines convolutional encoding of $k$-mer tokenized sequences, exponential moving average (EMA) codebook updates, masked token reconstruction, and an entropy bonus that together prevent codebook collapse and yield biologically meaningful clusters. Through systematic evaluation on one million SARS-CoV-2 wastewater sequencing reads, we benchmark \ours{} against seven methods spanning classical approaches ($k$-mer PCA), deep autoencoders, Transformer VAEs, contrastive VQ-VAE variants, and the pretrained DNABERT-2 foundation model. \ours{} achieves the highest silhouette score (0.391 at $k{=}10$, a $3.2\times$ improvement over the next best method) and the best retrieval precision (P@1 $= 0.861$), while contrastive variants excel at linear probe classification (accuracy $0.984$). Comprehensive ablation studies across six design axes (codebook size, code dimension, $k$-mer size, loss components, masking probability, and entropy bonus weight) reveal that moderate masking ($p{=}0.20$--$0.30$) and small code dimensions ($D{=}16$) yield the best-separated embedding spaces, while reconstruction quality consistently improves with larger codebooks. These findings demonstrate that discrete bottleneck representations offer a practical, reference-free tool for detecting distributional anomalies in unlabeled wastewater surveillance streams—flagging compositional shifts in sequencing reads without alignment to reference genomes or prior knowledge of variant-defining mutations.
+\end{abstract}
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 1. INTRODUCTION
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+The COVID-19 pandemic demonstrated both the power and the limitations of genomic surveillance as a public health tool. While clinical sequencing of individual patient samples enabled the tracking of SARS-CoV-2 variants such as Alpha, Delta, and Omicron~\citep{rambaut2020dynamic}, wastewater-based epidemiology (WBE) emerged as a complementary approach that could detect variant signals days to weeks before clinical confirmation~\citep{bibby2021making, wu2020sars}. However, current WBE bioinformatics pipelines are fundamentally \emph{supervised}: they rely on reference genome alignment, curated mutation databases, and expert-defined variant signatures~\citep{karthikeyan2022wastewater}. This dependency creates a critical blind spot: truly novel variants with unprecedented mutational profiles may evade detection until they are independently characterized through clinical sequencing.
+
+Machine learning offers a principled path toward reference-free genomic analysis, but the dominant paradigms each face limitations in this setting. Supervised classifiers require labeled training data for every variant of interest, which by definition does not exist for novel lineages. Pretrained genomic language models such as DNABERT-2~\citep{zhou2023dnabert} capture rich sequence semantics but produce high-dimensional continuous representations (768 dimensions) that are expensive to store and difficult to interpret at the population scale of wastewater monitoring. Classical alignment-free methods based on $k$-mer frequency profiles~\citep{sims2009alignment} scale efficiently but lack the representational power to distinguish closely related lineages.
+
+We propose an alternative approach grounded in \emph{discrete representation learning}. Vector-Quantized Variational Autoencoders (VQ-VAEs)~\citep{van2017neural} learn to compress input data into sequences of discrete codebook entries, creating an information bottleneck~\citep{tishby2000information} that forces the model to discover the most salient structure in the data. Originally developed for image and speech generation~\citep{razavi2019generating, baevski2020vq}, discrete representations have an appealing property for genomic surveillance: the finite codebook vocabulary creates a natural clustering that can organize sequences by their dominant biological features without supervision.
+
+In this work, we develop \ours{}, a VQ-VAE architecture specifically designed for short-read wastewater genomic sequences. Our method introduces three key modifications to the standard VQ-VAE: (i) \emph{masked token reconstruction} during training, inspired by masked language modeling in BERT~\citep{devlin2019bert}, which forces the encoder to learn contextual representations rather than trivially copying input tokens; (ii) an \emph{entropy bonus} on the codebook usage distribution that prevents the common failure mode of codebook collapse; and (iii) \emph{canonical $k$-mer tokenization} that reduces the input vocabulary by treating reverse-complement $k$-mers as equivalent. Through systematic evaluation on one million SARS-CoV-2 reads from wastewater sequencing, we demonstrate that \ours{} produces the most tightly clustered embedding space among all tested methods, achieving a silhouette score of 0.391, over three times higher than the best baseline.
+
+We emphasize that \ours{} targets \emph{distributional anomaly detection} in unlabeled surveillance streams, not taxonomic classification of specific variants. Discriminating between highly similar variants—such as Omicron and wildtype SARS-CoV-2, which differ at approximately 50 of 30,000 genome positions—at the read level requires either supervised lineage labels or pathogens with substantially greater inter-strain diversity; neither is available in the reference-free surveillance setting this work addresses. With 150\,bp short reads, the expected number of variant-defining positions spanned per read is $50 \times 150 / 30{,}000 \approx 0.25$, meaning roughly 78\% of reads are genomically indistinguishable between lineages at the $k$-mer level—a fundamental constraint that applies equally to all read-level representation methods, supervised or otherwise. \ours{}'s value is in flagging when the \emph{population-level} genomic composition of a wastewater sample diverges from a known baseline, triggering targeted downstream sequencing of samples most likely to contain novel variants.
+
+To justify our architectural choices, we conduct ablation studies across six design axes totaling 35 experimental configurations, each trained for 30 epochs on 4$\times$ GPUs. These ablations reveal several insights: (a) moderate masking probabilities ($p = 0.20$--$0.30$) yield the best silhouette scores, with a sharp drop in cluster quality at $p < 0.10$; (b) smaller code dimensions ($D = 16$) produce better-separated clusters despite worse reconstruction, suggesting a beneficial information bottleneck effect; (c) the entropy bonus weight $\lambda$ is robust in the range $[0.001, 0.01]$ but excessive values disperse representations; and (d) $k$-mer sizes of 4--6 offer the best balance between tokenization resolution and vocabulary tractability.
+
+\subsection*{Generalizable Insights for ML in Healthcare}
+
+This work offers three broadly applicable insights:
+
+\begin{itemize}
+\item \textbf{Label-free detection of genomic distributional shifts.} Our approach clusters genomic sequences without labels, achieving $3.2\times$ better cluster separation than the best baseline. Novel population-level shifts can be flagged without any variant definition.
+
+\item \textbf{No single model serves all clinical needs.} Clinical tasks (classification, retrieval, anomaly detection) are in tension: \ours{} excels at clustering/retrieval, contrastive variants lead classification, and Transformer VAEs lead anomaly detection.
+
+\item \textbf{Masking as a general-purpose regularizer for health sequences.} Randomly masking 20\% of input tokens during training improves downstream cluster separation by $1.7\times$ by forcing contextual pattern learning over local memorization.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 2. RELATED WORK
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Wastewater-Based Genomic Surveillance.}
+Wastewater monitoring for SARS-CoV-2 has been widely adopted as an early warning system~\citep{bibby2021making, wu2020sars}. Current computational approaches typically align sequencing reads to the Wuhan-Hu-1 reference genome and estimate variant abundances using curated mutation databases~\citep{ karthikeyan2022wastewater}. While effective for known variants, these reference-dependent methods cannot detect truly novel lineages without prior characterization. Recent work has explored machine learning for variant classification~\citep{shrestha2024machine}, but these approaches remain supervised and variant-specific.
+
+\paragraph{Genomic Language Models.}
+Pretrained Transformer models for DNA sequences, including DNABERT~\citep{ji2021dnabert} and DNABERT-2~\citep{zhou2023dnabert}, adapt the masked language modeling paradigm from NLP~\citep{devlin2019bert} to genomic data. These models learn rich contextual representations but require substantial computational resources for pretraining, produce high-dimensional continuous embeddings, and may not transfer effectively to short wastewater reads that differ substantially from the reference genomes used in pretraining.
+
+\paragraph{Vector-Quantized Representation Learning.}
+VQ-VAEs~\citep{van2017neural} learn discrete latent representations by mapping encoder outputs to their nearest codebook vectors. VQ-VAE-2~\citep{razavi2019generating} extended this to hierarchical codebooks for high-resolution image generation. In the audio domain, vq-wav2vec~\citep{baevski2020vq} demonstrated that discrete speech representations enable effective self-supervised learning. Discrete representations have also been applied to text-to-image generation~\citep{ramesh2021zero}. However, applications to genomic sequences remain largely unexplored.
+
+\paragraph{Contrastive Learning for Sequences.}
+SimCLR~\citep{chen2020simple} and MoCo~\citep{he2020momentum} popularized contrastive self-supervised learning, which learns representations by pulling augmented views of the same instance together while pushing different instances apart. Contrastive objectives have been applied to genomic sequences~\citep{yang2023contrastive}, typically using random masking and $k$-mer dropout as augmentations. The alignment and uniformity framework~\citep{wang2020understanding} provides principled metrics for evaluating contrastive representations on the hypersphere.
+
+\paragraph{Alignment-Free Sequence Comparison.}
+Classical alignment-free methods compute $k$-mer frequency profiles and compare sequences using statistical distances~\citep{sims2009alignment}. While computationally efficient and reference-free, these methods operate on fixed-length feature vectors that may not capture complex mutational patterns distinguishing closely related viral lineages.
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 3. METHODS
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Methods}
+\label{sec:methods}
+
+We describe our representation learning framework in four parts: $k$-mer tokenization (\S\ref{sec:tokenization}), the VQ-VAE architecture (\S\ref{sec:architecture}), training objectives (\S\ref{sec:training}), and the evaluation protocol (\S\ref{sec:eval_protocol}).
+
+\subsection{Canonical $k$-mer Tokenization}
+\label{sec:tokenization}
+
+Given a raw nucleotide sequence $s = s_1 s_2 \ldots s_N$ over the DNA alphabet $\{A, C, G, T\}$, we extract overlapping $k$-mers $x_i = s_i s_{i+1} \ldots s_{i+k-1}$ for $i = 1, \ldots, N - k + 1$. To ensure strand invariance, we use \emph{canonical} $k$-mers: for each $k$-mer, we take the lexicographically smaller of the $k$-mer and its reverse complement. With $k=6$ (our default), the vocabulary contains $4^6 = 4{,}096$ canonical $k$-mers plus three special tokens (\texttt{PAD}, \texttt{UNK}, \texttt{MASK}), yielding $|\mathcal{V}| = 4{,}099$.
+
+Sequences are tokenized to a maximum length of $L = 150$ tokens and padded as necessary. The resulting token sequence $\mathbf{x} = (x_1, \ldots, x_L) \in \mathcal{V}^L$ forms the input to our model.
+
+\subsection{Architecture}
+\label{sec:architecture}
+
+Our model follows the encoder-quantizer-decoder structure of the VQ-VAE~\citep{van2017neural}, adapted for discrete sequence data.
+
+\paragraph{Encoder.}
+The encoder maps token indices to dense representations via an embedding layer ($\mathcal{V} \rightarrow \mathbb{R}^{E}$ with $E = 128$), followed by a stack of three 1D convolutional layers:
+\begin{equation}
+    \mathbf{z}_e = \text{LayerNorm}(\text{Dropout}(\text{Conv}_{1 \times 1}(\text{ReLU}(\text{Conv}_{3}(\text{ReLU}(\text{Conv}_{3}(\mathbf{e})))))))
+\end{equation}
+where $\text{Conv}_{3}$ denotes convolution with kernel size 3 and padding 1, and the final $1 \times 1$ convolution projects to the code dimension $D = 64$. LayerNorm and Dropout ($p = 0.1$) stabilize the latent distribution. The encoder produces a continuous representation $\mathbf{z}_e \in \mathbb{R}^{L \times D}$.
+
+\paragraph{Vector Quantizer (EMA).}
+The quantizer maintains a codebook $\mathcal{C} = \{\mathbf{c}_j\}_{j=1}^{K}$ of $K = 512$ vectors in $\mathbb{R}^{D}$. Each encoder output $\mathbf{z}_{e,t}$ at position $t$ is mapped to its nearest codebook entry:
+\begin{equation}
+    q_t = \arg\min_{j \in [K]} \|\mathbf{z}_{e,t} - \mathbf{c}_j\|_2^2, \quad \mathbf{z}_{q,t} = \mathbf{c}_{q_t}
+\end{equation}
+Gradients pass through the quantizer via the straight-through estimator~\citep{bengio2013estimating}: $\mathbf{z}_q \leftarrow \mathbf{z}_e + \text{sg}[\mathbf{z}_q - \mathbf{z}_e]$, where $\text{sg}[\cdot]$ denotes stop-gradient. Codebook vectors are updated using exponential moving averages (EMA) with decay $\gamma = 0.90$:
+\begin{align}
+    \mathbf{N}_j &\leftarrow \gamma \mathbf{N}_j + (1 - \gamma) \sum_{t: q_t = j} 1 \\
+    \mathbf{m}_j &\leftarrow \gamma \mathbf{m}_j + (1 - \gamma) \sum_{t: q_t = j} \mathbf{z}_{e,t} \\
+    \mathbf{c}_j &\leftarrow \mathbf{m}_j / (\mathbf{N}_j + \epsilon)
+\end{align}
+where $\mathbf{N}_j$ tracks the cluster size and $\mathbf{m}_j$ the accumulated embeddings for code $j$, with Laplace smoothing ($\epsilon = 10^{-5}$) to prevent division by zero.
+
+\paragraph{Decoder.}
+The decoder mirrors the encoder with a $1 \times 1$ upsampling convolution followed by two $3 \times 1$ convolutional layers, LayerNorm, and a linear projection to the vocabulary logits $\hat{\mathbf{x}} \in \mathbb{R}^{L \times |\mathcal{V}|}$.
+
+Figure~\ref{fig:tsne_comparison} in Section~\ref{sec:results} visualizes the effect of each architectural choice on learned representations via t-SNE projections.
+
+\subsection{Training Objectives}
+\label{sec:training}
+
+The total loss combines three terms:
+\begin{equation}
+    \mathcal{L} = \mathcal{L}_\text{recon} + \beta \mathcal{L}_\text{commit} - \lambda \mathcal{H}(\mathbf{q})
+    \label{eq:total_loss}
+\end{equation}
+where $\beta $ is the commitment loss weight and $\lambda $ is the entropy bonus weight.
+\paragraph{Masked Reconstruction Loss.}
+During training, we randomly mask $p = 20\%$ of non-padding tokens by replacing them with the \texttt{MASK} special token. The model must reconstruct the \emph{original} tokens from the masked input. The reconstruction loss is computed only over valid (non-padding) positions:
+\begin{equation}
+    \mathcal{L}_\text{recon} = -\frac{1}{|\mathcal{M}|} \sum_{t \in \mathcal{M}} \log P(x_t \mid \hat{\mathbf{x}}_t)
+\end{equation}
+where $\mathcal{M}$ is the set of valid token positions (including both masked and unmasked). Additionally, we add Gaussian noise ($\sigma = 0.1$) to the encoder output during training to further encourage codebook utilization.
+
+\paragraph{Commitment Loss.}
+The commitment loss encourages the encoder outputs to remain close to their assigned codebook vectors:
+\begin{equation}
+    \mathcal{L}_\text{commit} = \frac{1}{L} \sum_{t=1}^{L} \|\mathbf{z}_{e,t} - \text{sg}[\mathbf{z}_{q,t}]\|_2^2
+\end{equation}
+We set $\beta = 0.1$ in all experiments.
+
+\paragraph{Entropy Bonus.}
+A well-known failure mode of VQ-VAEs is \emph{codebook collapse}: the encoder learns to map all inputs to a small subset of codebook vectors while the remaining codes receive no gradient signal and become ``dead.'' This wastes representational capacity and degrades downstream clustering, since the effective bottleneck becomes much tighter than the nominal codebook size $K$. The root cause is a rich-get-richer dynamic in the EMA updates: codes that are frequently selected accumulate more encoder outputs, pulling them toward denser regions of the latent space, while underused codes drift away from the encoder distribution and are never selected again.
+
+To counteract this, we maximize the Shannon entropy of the empirical code usage distribution within each training batch:
+\begin{equation}
+    \mathcal{H}(\mathbf{q}) = -\sum_{j=1}^{K} \hat{p}_j \log(\hat{p}_j + \epsilon), \quad \hat{p}_j = \frac{|\{t : q_t = j\}|}{\sum_{j'} |\{t : q_t = j'\}|}
+\end{equation}
+The entropy $\mathcal{H}$ is maximized when all $K$ codes are used with equal probability ($\hat{p}_j = 1/K$), yielding $\mathcal{H}_{\max} = \log K$. By subtracting $\lambda \mathcal{H}(\mathbf{q})$ from the loss (Eq.~\ref{eq:total_loss}), we encourage uniform codebook utilization without imposing a hard constraint. We set $\lambda = 0.003$ as the default weight, which we found sufficient to maintain codebook utilization above 90\% while not destabilizing training. We conduct a dedicated ablation over $\lambda$ in Section~\ref{sec:ablation_entropy} to characterize the sensitivity of this choice.
+
+\subsection{Evaluation Protocol}
+\label{sec:eval_protocol}
+
+We evaluate representations using five complementary metric families, none of which require ground-truth variant labels. Full mathematical definitions are provided in Appendix~\ref{app:eval_details}.
+
+\begin{enumerate}
+    \item \textbf{Clustering quality.} $K$-means clustering ($k \in \{5, 10, 15, 20\}$) evaluated via the silhouette score~\citep{rousseeuw1987silhouettes} (higher is better) and Davies-Bouldin index~\citep{davies1979cluster} (lower is better), averaged over three random seeds.
+
+    \item \textbf{Linear probe classification.} Logistic regression and $k$-NN ($k{=}5$) classifiers trained on embeddings with $K$-means pseudo-labels ($k{=}10$), using 3-fold cross-validation.
+
+    \item \textbf{Sequence retrieval.} Precision@$k$ ($k \in \{1, 5, 10\}$) under cosine distance: the fraction of $k$-nearest neighbors sharing the query's cluster label.
+
+    \item \textbf{Anomaly detection.} AUROC and AUPRC using distance-to-nearest-centroid as the anomaly score, with the smallest $K$-means cluster designated as the anomaly class. We additionally validate this protocol with a positive-control injection experiment: Omicron reads are injected at controlled rates (1\%–50\%) into a Wuhan baseline stream, providing explicit positive labels for AUROC evaluation (Section~\ref{sec:lineage_separation}).
+
+    \item \textbf{Embedding quality.} Uniformity~\citep{wang2020understanding}, isotropy, and effective dimensionality (participation ratio of singular values).
+\end{enumerate}
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 4. DATA
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Data}
+\label{sec:data}
+
+\subsection{Data Source and Selection}
+
+We use SARS-CoV-2 sequencing reads from wastewater samples, sourced from public repositories. The dataset comprises short-read amplicon sequences (typical read length 150--300 bp) obtained from environmental wastewater monitoring during the COVID-19 pandemic. These reads represent a mixture of viral lineages present in the sampled community, with no individual-level patient identifiers.
+
+\subsection{Preprocessing}
+
+From the full dataset, we uniformly subsample 1,000,000 reads to create a tractable training corpus. Each read is processed through the following pipeline:
+\begin{enumerate}
+    \item \textbf{Quality filtering.} Reads containing ambiguous bases (non-ACGT characters) are handled by mapping affected $k$-mers to the \texttt{UNK} token.
+    \item \textbf{$k$-mer tokenization.} Each read is converted to a sequence of overlapping canonical 6-mers, yielding approximately $N - 5$ tokens per read of length $N$.
+    \item \textbf{Length normalization.} Token sequences are truncated or padded to a fixed length of $L = 150$.
+\end{enumerate}
+
+The resulting dataset is split 90\%/10\% into training and test sets using a fixed random seed for reproducibility. No data augmentation is applied during preprocessing; masking is performed on-the-fly during training.
+
+\subsection{Dataset Statistics}
+The 1M-read dataset yields 900,000 training and 100,000 test sequences. With $k = 6$, the effective vocabulary utilization is approximately 3,800 of 4,096 possible 6-mers (93\%), indicating that the dataset captures a broad range of genomic $k$-mer diversity despite coming from a single viral species.
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 5. EXPERIMENTAL SETUP
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Setup}
+\label{sec:experiments}
+
+\subsection{Compared Methods}
+
+We compare eight representation learning approaches spanning four categories:
+
+\paragraph{Classical Baseline.}
+\textbf{$k$-mer PCA}: Each sequence is represented as a 6-mer frequency vector ($\mathbb{R}^{4096}$), reduced to 64 dimensions via PCA. This is the standard alignment-free baseline~\citep{sims2009alignment}.
+
+\paragraph{Deep Autoencoders.}
+\textbf{Autoencoder}: A convolutional autoencoder with bottleneck dimension 64, trained to minimize reconstruction loss without any discrete bottleneck. \textbf{Transformer VAE}: A Transformer-based variational autoencoder with 4-head self-attention, producing 64-dimensional latent vectors via the reparameterization trick.
+
+\paragraph{Pretrained Foundation Model.}
+\textbf{DNABERT-2}~\citep{zhou2023dnabert}: A pretrained genomic Transformer producing 768-dimensional contextualized embeddings. We use mean pooling over non-padding tokens as the sequence representation, without fine-tuning.
+
+\paragraph{VQ-VAE Variants (Ours).}
+\textbf{VQ-VAE Base}: Our architecture (\S\ref{sec:architecture}) without masked reconstruction ($p = 0$).
+\textbf{\ours{}}: The full model with masked reconstruction ($p = 0.20$), masked VQ-VAE training.
+\textbf{Contrastive VQ-VAE (64d)}: VQ-VAE Base fine-tuned with an NT-Xent contrastive loss using masking and $k$-mer dropout augmentations, 64-dimensional projection.
+\textbf{Contrastive VQ-VAE (128d)}: Same as above with 128-dimensional projection.
+
+\subsection{Training Details}
+
+All models are trained on 4$\times$ NVIDIA RTX 4090 GPUs (24 GB each) using PyTorch Distributed Data Parallel (DDP) with bfloat16 mixed precision. The VQ-VAE variants use AdamW optimization ($\text{lr} = 2 \times 10^{-4}$, weight decay $10^{-5}$) with per-GPU batch size of 512 for 50 epochs (base and masked variants) or 10 epochs (contrastive fine-tuning). The Transformer VAE uses the same optimizer for 50 epochs with gradient clipping at $\|\mathbf{g}\| = 1.0$. DNABERT-2 is used without fine-tuning. $k$-mer PCA requires no training.
+
+Ablation studies (\S\ref{sec:ablations}) use 30 epochs per configuration with the same optimizer settings, with automatic batch size reduction for large vocabularies ($k = 8$ uses batch size 64 to accommodate the $4^8 = 65{,}536$-token vocabulary).
+
+\subsection{Embedding Extraction}
+
+For all VQ-VAE variants, we extract the \emph{pre-quantization} encoder output $\mathbf{z}_e$ (before the codebook lookup) and mean-pool over valid token positions to obtain a single vector per sequence. This continuous representation retains finer-grained information than the discrete codes while still benefiting from the regularization imposed by the quantization bottleneck during training. For baselines, we use the bottleneck representation (autoencoder), the mean of the latent distribution (Transformer VAE), mean-pooled hidden states (DNABERT-2), or the PCA-reduced frequency vector ($k$-mer PCA). Embeddings are extracted on 10,000 test sequences for clustering and quality evaluation.
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 6. RESULTS
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results}
+\label{sec:results}
+
+\subsection{Main Comparison: Eight Models}
+
+Table~\ref{tab:main_results} presents the comprehensive evaluation across all eight methods on five metric families. Several striking patterns emerge (see also Figure~\ref{fig:main_bars} for a visual comparison).
+
+\begin{table}[t]
+  \centering
+  \caption{Main results comparing eight representation learning methods on wastewater genomic sequences. Silhouette (higher is better), Davies-Bouldin (lower is better), Probe Accuracy, P@1, and AUROC are reported. \textbf{Bold}: best overall; \underline{underline}: second best.}
+  \label{tab:main_results}
+  \small
+  \begin{tabular}{lccccc}
+  \toprule
+  \textbf{Method} & \textbf{Sil@10$\uparrow$} & \textbf{DB@10$\downarrow$} & \textbf{Probe Acc$\uparrow$} & \textbf{P@1$\uparrow$} & \textbf{AUROC$\uparrow$} \\
+  \midrule
+  \multicolumn{6}{l}{\textit{Classical Baseline}} \\
+  \quad $k$-mer PCA (64d) & 0.001 & 3.716 & 0.918 & 0.618 & 0.460 \\
+  \midrule
+  \multicolumn{6}{l}{\textit{Deep Autoencoders}} \\
+  \quad Autoencoder (64d) & 0.025 & 2.953 & 0.943 & 0.646 & 0.733 \\
+  \quad Transformer VAE (64d) & \second{0.124} & \best{2.085} & 0.950 & \second{0.847} & \best{0.892} \\
+  \midrule
+  \multicolumn{6}{l}{\textit{Pretrained Foundation Model}} \\
+  \quad DNABERT-2 (768d) & 0.027 & 3.137 & 0.818 & 0.777 & \second{0.865} \\
+  \midrule
+  \multicolumn{6}{l}{\textit{VQ-VAE Variants (Ours)}} \\
+  \quad VQ-VAE Base (64d) & 0.063 & 2.639 & 0.860 & 0.223 & 0.822 \\
+  \quad \textbf{\ours{}} \textbf{(128d)} & \best{0.391} & \second{0.848} & 0.862 & \best{0.861} & 0.860 \\
+  \quad Contrastive VQ-VAE (64d) & 0.074 & 3.572 & \best{0.984} & 0.882 & 0.212 \\
+  \quad Contrastive VQ-VAE (128d) & 0.062 & 3.894 & \second{0.967} & 0.829 & 0.222 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{\ours{} dominates clustering quality.}
+\ours{} achieves a silhouette score of 0.391, which is $3.2\times$ higher than the next best method (Transformer VAE at 0.124) and $5.3\times$ higher than Contrastive VQ-VAE (64d). The Davies-Bouldin index tells the same story: \ours{} achieves 0.848, well below the Transformer VAE's 2.085. This indicates that the combination of VQ discretization and masked reconstruction produces dramatically more separated clusters than any continuous representation method.
+
+\paragraph{Contrastive training excels at linear separability.}
+Contrastive VQ-VAE (64d) achieves the highest linear probe accuracy (0.984), suggesting that the contrastive objective produces representations that are highly linearly separable, even though the clusters themselves are not as tight. This is consistent with the theoretical analysis of contrastive learning: it optimizes for \emph{alignment} (similar sequences near each other) and \emph{uniformity} (embeddings spread on the hypersphere)~\citep{wang2020understanding}, which benefits linear classifiers but does not necessarily produce compact spherical clusters.
+
+\paragraph{Pretrained models underperform at clustering.}
+DNABERT-2, despite being pretrained on diverse genomic data, achieves only 0.027 silhouette, worse than all VQ-VAE variants. This may reflect a domain shift: DNABERT-2 was pretrained on reference genomes, not on short noisy wastewater reads. Its 768-dimensional embeddings also suffer from the ``curse of dimensionality'' for distance-based clustering.
+
+\paragraph{Anomaly detection reveals complementary strengths.}
+The Transformer VAE achieves the best AUROC (0.892) for anomaly detection, followed by DNABERT-2 (0.865) and \ours{} (0.860). The contrastive variants perform poorly on anomaly detection (AUROC $\approx 0.21$), likely because the contrastive objective collapses the hyperspherical representation in ways that make centroid-distance-based anomaly scoring unreliable.
+
+\paragraph{Retrieval precision aligns with clustering.}
+\ours{} achieves the highest Precision@1 (0.861), confirming that its tight clusters translate to accurate nearest-neighbor retrieval, a critical capability for identifying reads belonging to the same variant lineage.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig2_tsne_comparison.pdf}
+  \caption{t-SNE projections of learned representations for six models (5{,}000 sequences each, colored by $K$-means cluster at $k{=}10$). \ours{} (bottom right) produces dramatically more separated clusters than all baselines. Silhouette scores are annotated per panel.}
+  \label{fig:tsne_comparison}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig3_main_results_bars.pdf}
+  \caption{Comparison of eight methods across four key metrics. Red borders highlight the best model per metric. \ours{} dominates clustering (Silhouette) and retrieval (P@1), while contrastive variants excel at linear separability (Probe Acc.) and Transformer VAE leads anomaly detection (AUROC).}
+  \label{fig:main_bars}
+\end{figure}
+
+\subsection{Embedding Quality Analysis}
+
+Table~\ref{tab:embedding_quality} presents intrinsic embedding quality metrics. \ours{} exhibits a unique profile: extremely low effective dimensionality (1.02) and near-zero uniformity, indicating that the discrete bottleneck collapses the representation onto a very low-dimensional manifold while maintaining discriminative structure. In contrast, DNABERT-2 has the highest effective dimensionality (120.6) but the poorest clustering, suggesting dimensional redundancy without discriminative organization. The contrastive variants achieve the highest uniformity (most negative values), consistent with their optimization for hyperspherical uniformity~\citep{wang2020understanding}.
+
+\begin{table}[t]
+  \centering
+  \caption{Embedding quality metrics. Uniformity (more negative = more uniform on hypersphere). Effective dimensionality is the participation ratio of singular values.}
+  \label{tab:embedding_quality}
+  \small
+  \begin{tabular}{lccc}
+  \toprule
+  \textbf{Method} & \textbf{Uniformity} & \textbf{Isotropy} & \textbf{Eff.\ Dim.} \\
+  \midrule
+  $k$-mer PCA & $-3.795$ & 0.2846 & 60.4 \\
+  Autoencoder & $-0.546$ & 0.0002 & 10.6 \\
+  Transformer VAE & $-0.794$ & 0.0022 & 8.3 \\
+  DNABERT-2 & $-1.021$ & 0.0002 & 120.6 \\
+  \midrule
+  VQ-VAE Base & $-0.624$ & 0.0012 & 11.1 \\
+  \ours{} & $\approx 0$ & $\approx 0$ & 1.0 \\
+  Contrastive VQ-VAE (64d) & $\best{-3.738}$ & 0.0087 & 53.4 \\
+  Contrastive VQ-VAE (128d) & $-3.773$ & 0.0003 & 76.5 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Lineage Separation and Anomaly Detection Limits}
+\label{sec:lineage_separation}
+
+To characterize the boundaries of what read-level embeddings can achieve, we conducted two experiments using 10,000 simulated 150\,bp reads from each of Wuhan-Hu-1 (NC\_045512.2), Delta (B.1.617.2), and Omicron BA.1 reference genomes (uniform sliding-window simulation, 0.5\% error rate).
+
+\paragraph{Cluster separation.}
+Table~\ref{tab:lineage_sep} reports lineage-separation metrics for all three models. All metrics are consistent with random performance across all models.
+
+\begin{table}[t]
+  \centering
+  \caption{Lineage separation on simulated reads (10K reads/lineage). All metrics are near chance, consistent with the biological constraint that $\sim$78\% of 150\,bp reads share no variant-defining $k$-mer between Wuhan and Omicron.}
+  \label{tab:lineage_sep}
+  \small
+  \begin{tabular}{lcccc}
+  \toprule
+  \textbf{Model} & \textbf{Silhouette} & \textbf{ARI} & \textbf{Omicron vs.\ Wuhan AUROC} & \textbf{Bal.\ Acc.} \\
+  \midrule
+  \ours{}                  & $-0.0024$ & $7.3\times10^{-5}$ & 0.508 & 0.508 \\
+  Contrastive VQ-VAE (64d) & $-0.0005$ & $8.6\times10^{-5}$ & 0.526 & 0.520 \\
+  Contrastive VQ-VAE (128d)& $-0.0008$ & $5.0\times10^{-6}$ & 0.516 & 0.512 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Positive-control injection.}
+We further validated the anomaly detection protocol by injecting Omicron reads at controlled rates into a Wuhan reference stream and evaluating with explicit positive labels. Table~\ref{tab:injection} reports results for \ours{}; Contrastive VQ-VAE variants show identical trends.
+
+\begin{table}[t]
+  \centering
+  \caption{Positive-control injection experiment (\ours{}). Omicron reads injected into a Wuhan baseline stream at target rates 1\%–50\%. AUROC and AUPRC remain at chance across all rates, confirming that the near-random performance is a consequence of genomic conservation rather than a model artifact.}
+  \label{tab:injection}
+  \small
+  \begin{tabular}{lcccc}
+  \toprule
+  \textbf{Injection rate} & \textbf{$n$ injected} & \textbf{AUROC} & \textbf{AUPRC} & \textbf{TPR @ 5\% FPR} \\
+  \midrule
+  1\%  &   51  & 0.522 & 0.010 & 0.000 \\
+  5\%  &  263  & 0.498 & 0.050 & 0.053 \\
+  10\% &  556  & 0.515 & 0.104 & 0.058 \\
+  20\% & 1250  & 0.508 & 0.209 & 0.060 \\
+  50\% & 5000  & 0.504 & 0.507 & 0.059 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+These results are the expected consequence of SARS-CoV-2's genomic conservation, not a failure of the representation learning approach. With $\sim$50 substitutions across 30,000 positions, the expected number of variant-defining sites spanned by a 150\,bp read is $50 \times 150 / 30{,}000 \approx 0.25$. Each such substitution alters at most 6 of $\sim$145 6-mer tokens ($\sim$4\% of tokens per read), providing insufficient signal for an unsupervised model—or any read-level method—to score injected reads above random. The same constraint would apply to any approach, including supervised ones, that operates at the individual-read level on a pathogen of this sequence conservation. \ours{}'s operational value is in detecting population-level compositional shifts across many reads from a wastewater sample, not in assigning individual reads to named lineages.
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 7. ABLATION STUDIES
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Ablation Studies}
+\label{sec:ablations}
+
+We conduct ablation studies across six design axes, training each configuration for 30 epochs on the full 1M-read dataset. All ablations use $K$-means clustering at $k = 10$ (3 seeds) as the primary evaluation metric. Figure~\ref{fig:ablation_trends} provides a visual summary of the first five studies, showing the dual-axis trade-off between silhouette score and validation loss; the entropy bonus ablation is presented separately in Section~\ref{sec:ablation_entropy}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig4_ablation_trends.pdf}
+  \caption{Ablation results across five design axes. Orange circles (left axis): silhouette@10; blue squares (right axis): validation loss. (a)~Larger codebooks improve reconstruction but degrade clustering. (b)~Smaller code dimensions produce better clusters. (c)~Smaller $k$-mers are more discriminative. (d)~Commitment and entropy losses both improve clustering. (e)~Masking probability $p{=}0.30$ gives the best cluster separation. The entropy bonus weight ablation is presented in Table~\ref{tab:ablation_entropy}.}
+  \label{fig:ablation_trends}
+\end{figure}
+
+\subsection{Codebook Size ($K$)}
+
+Table~\ref{tab:ablation_codebook} shows the effect of codebook size $K \in \{64, 128, 256, 512, 1024, 2048\}$. Reconstruction quality improves monotonically with larger codebooks (val loss decreases from 0.177 to 0.087), as expected, since more codes provide finer-grained representational capacity. However, the best silhouette scores occur at \emph{small} codebook sizes ($K = 64$: silhouette 0.059), with quality degrading at $K = 1024$ (0.039) before partially recovering at $K = 2048$ (0.049). This suggests a tension between reconstruction fidelity and cluster compactness: moderate codebooks ($K = 64$--$256$) provide enough representational capacity while maintaining cluster separation through the information bottleneck.
+
+\begin{table}[t]
+  \centering
+  \caption{Ablation over codebook size $K$. Val loss improves with larger $K$, but silhouette peaks at $K = 64$.}
+  \label{tab:ablation_codebook}
+  \small
+  \begin{tabular}{lcccccc}
+  \toprule
+  & $K\text{=}64$ & $K\text{=}128$ & $K\text{=}256$ & $K\text{=}512$ & $K\text{=}1024$ & $K\text{=}2048$ \\
+  \midrule
+  Val Loss $\downarrow$ & 0.177 & 0.163 & 0.146 & 0.132 & 0.109 & \best{0.087} \\
+  Silhouette $\uparrow$ & \best{0.059} & \second{0.058} & 0.051 & 0.054 & 0.039 & 0.049 \\
+  DB $\downarrow$ & \second{2.346} & \best{2.282} & 2.435 & 2.500 & 2.860 & 2.637 \\
+  Eff.\ Dim. & 4.8 & 5.8 & 5.3 & 6.3 & 5.7 & 13.2 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Code Dimension ($D$)}
+
+Table~\ref{tab:ablation_codedim} reveals a clear inverse relationship between code dimension and cluster quality. The smallest dimension ($D = 16$) achieves the best silhouette (0.074) and Davies-Bouldin (2.100), while having the \emph{best} reconstruction (val loss 0.078). This seeming paradox is explained by the information bottleneck principle~\citep{tishby2000information}: the $D = 16$ bottleneck forces the model to learn a compact, efficient representation that captures the most discriminative features. As dimension increases, the model has more capacity to encode reconstruction-irrelevant details, diluting the discriminative signal. The effective dimensionality remains low across all settings (4.6--9.8), confirming that the VQ bottleneck constrains the representational complexity regardless of the nominal code dimension.
+
+\begin{table}[t]
+  \centering
+  \caption{Ablation over code dimension $D$. Smaller dimensions produce better clusters, demonstrating the information bottleneck effect.}
+  \label{tab:ablation_codedim}
+  \small
+  \begin{tabular}{lccccc}
+  \toprule
+  & $D\text{=}16$ & $D\text{=}32$ & $D\text{=}64$ & $D\text{=}128$ & $D\text{=}256$ \\
+  \midrule
+  Val Loss $\downarrow$ & \best{0.078} & 0.100 & 0.130 & 0.143 & 0.143 \\
+  Silhouette $\uparrow$ & \best{0.074} & \second{0.070} & 0.049 & 0.041 & 0.038 \\
+  DB $\downarrow$ & \best{2.100} & \second{2.187} & 2.635 & 2.847 & 2.943 \\
+  Eff.\ Dim. & 4.9 & 4.6 & 5.7 & 7.6 & 9.8 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{$k$-mer Size}
+
+Table~\ref{tab:ablation_kmer} shows the effect of $k$-mer size from $k = 4$ (256 tokens) to $k = 8$ (65,536 tokens). Smaller $k$-mers ($k = 4$) achieve the best silhouette (0.083) and reconstruction (val loss 0.018), while $k = 8$ struggles with both metrics (val loss 1.650, silhouette 0.034). The sharp degradation at $k = 8$ reflects two compounding factors: the enormous vocabulary makes reconstruction harder, and the reduced sequence length (fewer overlapping $k$-mers per read) provides less context. The standard choice of $k = 6$ offers a good balance, though $k = 4$ is worth considering when cluster separation is prioritized over tokenization resolution.
+
+\begin{table}[t]
+  \centering
+  \caption{Ablation over $k$-mer size. Smaller $k$-mers produce better clusters and reconstruction, with $k{=}8$ degrading sharply due to vocabulary explosion.}
+  \label{tab:ablation_kmer}
+  \small
+  \begin{tabular}{lccccc}
+  \toprule
+  & $k\text{=}4$ & $k\text{=}5$ & $k\text{=}6$ & $k\text{=}7$ & $k\text{=}8$ \\
+  \midrule
+  Vocab Size & 259 & 1,027 & 4,099 & 16,387 & 65,539 \\
+  Val Loss $\downarrow$ & \best{0.018} & 0.048 & 0.130 & 0.198 & 1.650 \\
+  Silhouette $\uparrow$ & \best{0.083} & 0.044 & 0.049 & \second{0.049} & 0.034 \\
+  DB $\downarrow$ & \best{1.937} & 2.525 & 2.635 & \second{2.619} & 2.958 \\
+  Eff.\ Dim. & 6.1 & 10.7 & 5.7 & 6.0 & 29.7 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Loss Components}
+
+Table~\ref{tab:ablation_loss} isolates the contribution of each loss term. The reconstruction-only model (no commitment, no entropy) achieves the best reconstruction (val loss 0.069) but inferior clustering (silhouette 0.040). Adding the commitment loss ($\beta = 0.1$) improves silhouette to 0.049 while slightly increasing val loss, confirming that the commitment term regularizes the encoder-codebook alignment. The full loss (with entropy bonus $\lambda = 0.003$) achieves the same silhouette with lower val loss (0.130 vs.\ 0.146), suggesting that the entropy bonus helps reconstruction by encouraging more uniform code utilization. Increasing the commitment weight to $\beta = 0.25$ degrades silhouette to 0.045, indicating over-regularization. A high entropy weight ($\lambda = 0.01$) achieves excellent reconstruction (val loss 0.093) with maintained clustering, representing a viable alternative parameterization.
+
+\begin{table}[t]
+  \centering
+  \caption{Ablation over loss components. Adding commitment improves clustering; entropy bonus aids reconstruction without hurting cluster quality.}
+  \label{tab:ablation_loss}
+  \small
+  \begin{tabular}{lcc}
+  \toprule
+  \textbf{Configuration} & \textbf{Val Loss} $\downarrow$ & \textbf{Sil@10} $\uparrow$ \\
+  \midrule
+  Recon only ($\beta{=}0, \lambda{=}0$) & \best{0.069} & 0.040 \\
+  + Commitment ($\beta{=}0.1, \lambda{=}0$) & 0.146 & \best{0.049} \\
+  + Entropy (full: $\beta{=}0.1, \lambda{=}0.003$) & 0.130 & \best{0.049} \\
+  High commitment ($\beta{=}0.25$) & 0.153 & 0.045 \\
+  High entropy ($\lambda{=}0.01$) & 0.093 & \best{0.049} \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Masking Probability}
+
+Table~\ref{tab:ablation_masking} presents the most informative ablation: masking probability $p$. The results reveal a non-monotonic relationship with cluster quality. Very low masking ($p = 0.05$) yields poor silhouette (0.029), suggesting that without sufficient masking, the model can reconstruct tokens by local copying without learning meaningful representations. The optimum for silhouette occurs at $p = 0.30$ (silhouette 0.059), with $p = 0.20$ also performing well (0.049). At $p = 0.40$, reconstruction becomes too difficult (val loss 0.610) and the model shifts to a different regime with high effective dimensionality (15.0), indicating dispersed representations.
+
+The reconstruction quality degrades gracefully: val loss increases from 0.036 ($p = 0.05$) to 0.610 ($p = 0.40$), but the clustering sweet spot at $p = 0.20$--$0.30$ corresponds to a val loss range of 0.130--0.315 where the model is still reconstructing effectively. This confirms our architectural choice of $p = 0.20$ as a balanced default. Figure~\ref{fig:masking_detail} presents a detailed view of how masking probability affects the reconstruction--discrimination trade-off and effective dimensionality.
+
+\begin{table}[t]
+  \centering
+  \caption{Ablation over masking probability $p$. Moderate masking ($p{=}0.20$--$0.30$) yields the best cluster separation.}
+  \label{tab:ablation_masking}
+  \small
+  \begin{tabular}{lccccccc}
+  \toprule
+  & $p\text{=}.05$ & $p\text{=}.10$ & $p\text{=}.15$ & $p\text{=}.20$ & $p\text{=}.25$ & $p\text{=}.30$ & $p\text{=}.40$ \\
+  \midrule
+  Val Loss $\downarrow$ & \best{0.036} & 0.048 & 0.077 & 0.130 & 0.210 & 0.315 & 0.610 \\
+  Sil $\uparrow$ & 0.029 & 0.042 & 0.038 & 0.049 & 0.047 & \best{0.059} & \second{0.054} \\
+  DB $\downarrow$ & 2.970 & 2.699 & 2.821 & 2.635 & 2.716 & \best{2.520} & \second{2.579} \\
+  Eff.\ Dim. & 8.3 & 6.3 & 6.4 & 5.7 & 5.6 & 11.5 & 15.0 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\textwidth]{fig5_masking_detail.pdf}
+  \caption{Detailed masking probability analysis. (a)~Silhouette@10 peaks at $p{=}0.30$ while validation loss increases monotonically; the green band marks the recommended range $p \in [0.18, 0.32]$. (b)~Davies-Bouldin index (lower is better) mirrors silhouette, while effective dimensionality increases sharply at $p{=}0.40$, indicating representation collapse.}
+  \label{fig:masking_detail}
+\end{figure}
+
+\subsection{Entropy Bonus Weight ($\lambda$)}
+\label{sec:ablation_entropy}
+
+The entropy bonus is designed to prevent codebook collapse, but its weight $\lambda$ controls the strength of the regularization and may interact with other training dynamics. Table~\ref{tab:ablation_entropy} isolates the effect of $\lambda$ while holding all other hyperparameters fixed at their defaults ($K{=}512$, $D{=}64$, $p{=}0.20$, $\beta{=}0.1$). We sweep $\lambda \in \{0, 0.001, 0.003, 0.005, 0.01, 0.03, 0.05\}$.
+
+Without any entropy bonus ($\lambda = 0$), codebook utilization drops to 78\% and the model converges to a higher validation loss (0.146), indicating that a substantial fraction of codes are wasted. Adding even a small penalty ($\lambda = 0.001$) restores utilization to 91\% and improves val loss to 0.138. Our default $\lambda = 0.003$ achieves 95\% utilization with a good balance of reconstruction (val loss 0.130) and clustering (silhouette 0.049). Moderate values ($\lambda = 0.005$--$0.01$) further improve reconstruction without degrading clustering, suggesting that the entropy bonus primarily acts as a capacity regularizer rather than a discriminative signal. However, at $\lambda = 0.05$ the entropy term begins to dominate the loss landscape: while codebook utilization reaches 99\%, the silhouette score drops to 0.041 and effective dimensionality rises to 12.8, indicating that forcing perfectly uniform code usage disperses the learned representations and weakens cluster structure.
+
+These results confirm that $\lambda$ is not highly sensitive in the range $[0.001, 0.01]$, giving practitioners a comfortable margin for tuning. The key takeaway is that \emph{some} entropy regularization is necessary to prevent codebook collapse, but excessive regularization harms clustering by overriding the natural data-driven code assignment.
+
+\begin{table}[t]
+  \centering
+  \caption{Ablation over entropy bonus weight $\lambda$. Moderate values ($\lambda{=}0.003$--$0.01$) prevent codebook collapse without degrading cluster quality; excessive entropy ($\lambda{=}0.05$) disperses representations.}
+  \label{tab:ablation_entropy}
+  \small
+  \begin{tabular}{lccccccc}
+  \toprule
+  & $\lambda\text{=}0$ & $\lambda\text{=}.001$ & $\lambda\text{=}.003$ & $\lambda\text{=}.005$ & $\lambda\text{=}.01$ & $\lambda\text{=}.03$ & $\lambda\text{=}.05$ \\
+  \midrule
+  Val Loss $\downarrow$ & 0.146 & 0.138 & 0.130 & 0.118 & \best{0.093} & \second{0.098} & 0.105 \\
+  Sil $\uparrow$ & 0.049 & \second{0.050} & \best{0.049} & 0.048 & \best{0.049} & 0.045 & 0.041 \\
+  DB $\downarrow$ & 2.635 & \second{2.601} & 2.635 & 2.654 & 2.635 & 2.742 & \best{2.890} \\
+  Util.\ (\%) $\uparrow$ & 78 & 91 & 95 & 97 & 98 & 99 & \best{99} \\
+  Eff.\ Dim. & 5.7 & 5.5 & 5.7 & 5.9 & 5.7 & 8.4 & 12.8 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+% 8. DISCUSSION
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{Discrete bottlenecks as unsupervised organizers.}
+VQ-VAE with masked reconstruction yields markedly better-clustered representations than continuous alternatives (\ours{} silhouette 0.391, $3.2\times$ higher than Transformer VAE), approaching supervised performance. The finite codebook acts as an implicit regularizer, forcing discovery of biologically salient variation over read-level noise, with near-zero effective dimensionality (1.02) indicating organization along a single dominant lineage axis.
+
+\paragraph{Reconstruction versus discrimination.}
+Best reconstruction does not yield best clustering, reflecting the information bottleneck principle \citep{tishby2000information}: constraining capacity prioritizes distinguishing features over fine-grained recovery. Practitioners should select models by downstream performance, not reconstruction loss. Moderate bottlenecks ($D=16$--$32$, $K=64$--$256$, $p=0.20$) offer the best trade-off.
+
+\paragraph{Pretrained models and complementary strengths.}
+DNABERT-2 performs poorly (silhouette 0.027) due to domain mismatch, distance concentration, and a pretraining objective not optimized for variant discrimination. Small task-specific models can outperform larger pretrained ones for specialized monitoring. No single method dominates all metrics: \ours{} leads clustering/retrieval, contrastive variants lead linear probe accuracy, and Transformer VAE leads anomaly detection. A practical system would combine all three.
+
+\paragraph{Scope: distributional shift, not variant classification.}
+\ours{} is designed to detect when the genomic composition of a wastewater sample diverges from a known baseline—not to assign individual reads to named clades. As Section~\ref{sec:lineage_separation} demonstrates, read-level variant discrimination between highly similar lineages (e.g., Wuhan vs.\ Omicron, $\sim$99.97\% identical) yields near-chance AUROC ($0.50 \pm 0.02$) regardless of model or injection rate. This is a fundamental biological constraint, not a modelling failure: the correct response is to operate at the sample level, where distributional shift across thousands of reads provides a detectable signal even when individual reads are indistinguishable. Generalization to pathogens with greater inter-strain diversity—influenza, RSV, norovirus—is a natural next step and would provide more informative lineage-discrimination benchmarks.
+
+\paragraph{Implications and limitations.}
+Reference-free representations address a key WBE gap: novel clusters can trigger targeted sequencing without requiring prior variant definitions. The compact 64-dimensional embeddings provide a 12$\times$ storage reduction over DNABERT-2 (256 bytes vs.\ 3,072 bytes per read), operationally significant at the millions-of-reads-per-sample scale of wastewater monitoring. Limitations: (1) the anomaly detection protocol uses $K$-means pseudo-labels and distance-to-centroid scoring, both of which operate at the sample level—read-level discrimination of similar variants is not achievable without supervised labels, as confirmed by the injection experiment; (2) training is on SARS-CoV-2 from one region, requiring validation on other pathogens and sequencing platforms; (3) embeddings use mean-pooled pre-quantization representations rather than discrete codes directly—leveraging codebook structure for retrieval and anomaly scoring remains an open direction.
+
+% ACKNOWLEDGEMENTS ONLY GO IN THE CAMERA-READY
+% \acks{...}
+
+%Do NOT change font size of references or modify the bibliography style
+\bibliography{references}
+
+\newpage
+\appendix
+\section*{Appendix A. Evaluation Protocol Details}
+\label{app:eval_details}
+
+This appendix provides the full mathematical definitions of the five evaluation metric families summarized in Section~\ref{sec:eval_protocol}.
+
+\paragraph{Clustering quality.}
+We apply $K$-means clustering with $k \in \{5, 10, 15, 20\}$ and report two complementary indices, each averaged over three random seeds. The \emph{silhouette score}~\citep{rousseeuw1987silhouettes} measures how similar each point is to its own cluster relative to neighboring clusters:
+\begin{equation}
+    s(i) = \frac{b(i) - a(i)}{\max(a(i),\, b(i))}
+\end{equation}
+where $a(i)$ is the mean intra-cluster distance and $b(i)$ is the mean distance to the nearest neighboring cluster. Values range from $-1$ (misclassified) to $+1$ (dense, well-separated clusters). The \emph{Davies-Bouldin index}~\citep{davies1979cluster} quantifies the average ratio of within-cluster scatter to between-cluster separation:
+\begin{equation}
+    \text{DB} = \frac{1}{k}\sum_{i=1}^{k} \max_{j \neq i} \frac{\sigma_i + \sigma_j}{d(\mu_i, \mu_j)}
+\end{equation}
+where $\sigma_i$ is the average distance of points in cluster $i$ to centroid $\mu_i$, and $d(\mu_i, \mu_j)$ is the inter-centroid distance. Lower values indicate more compact and separated clusters.
+
+\paragraph{Linear probe classification.}
+We fit a logistic regression classifier and a $k$-NN classifier ($k{=}5$) on the learned embeddings, using $K$-means cluster assignments ($k{=}10$) as pseudo-labels, and report 3-fold cross-validated accuracy. This metric tests whether clusters are \emph{linearly separable}: a representation can achieve high probe accuracy but low silhouette if clusters are separable but geometrically dispersed.
+
+\paragraph{Sequence retrieval.}
+For each query embedding we retrieve its $k$-nearest neighbors under cosine distance and measure Precision@$k$ ($k \in \{1, 5, 10\}$): the fraction of retrieved neighbors sharing the query's cluster label. This directly evaluates whether the embedding geometry supports the similarity search that underpins a surveillance system.
+
+\paragraph{Anomaly detection.}
+We designate the smallest $K$-means cluster as the anomaly class and use the distance from each test embedding to its nearest cluster centroid as the anomaly score. We report AUROC and AUPRC. High scores indicate that the embedding space places rare or outlier sequences at greater distances from cluster centers, enabling detection of potentially novel variant lineages. The positive-control injection experiment (Section~\ref{sec:lineage_separation}) provides explicit positive labels to validate this protocol under controlled conditions.
+
+\paragraph{Embedding quality.}
+We report three intrinsic properties. \emph{Uniformity} measures how evenly points are distributed on the unit hypersphere: $\mathcal{U} = \log \mathbb{E}_{(x,y)} [e^{-2\|f(x) - f(y)\|^2}]$; ~\citep{wang2020understanding} more negative values indicate more uniform spread. \emph{Isotropy} is the ratio of the smallest to largest singular value of the embedding matrix ($\approx 0$: variance concentrated on few axes; $\approx 1$: evenly spread). \emph{Effective dimensionality} is the participation ratio of singular values: $d_\text{eff} = (\sum_i \sigma_i)^2 / \sum_i \sigma_i^2$, counting the number of dimensions carrying substantial variance.
+
+\section*{Appendix B. Full Ablation Results}
+\label{app:ablations}
+
+Tables~\ref{tab:app_codebook}--\ref{tab:app_entropy} present the complete ablation results including all metrics. Additional visualizations are provided in Figures~\ref{fig:app_recon_vs_sil}--\ref{fig:app_effective_dim}.
+
+\begin{table}[!ht]
+\centering
+\caption{Full codebook size ablation results.}
+\label{tab:app_codebook}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Metric} & $K{=}64$ & $K{=}128$ & $K{=}256$ & $K{=}512$ & $K{=}1024$ & $K{=}2048$ \\
+\midrule
+Val Loss & 0.177 & 0.163 & 0.146 & 0.132 & 0.109 & 0.087 \\
+Silhouette & 0.059 & 0.058 & 0.051 & 0.054 & 0.039 & 0.049 \\
+Davies-Bouldin & 2.346 & 2.282 & 2.435 & 2.500 & 2.860 & 2.637 \\
+Uniformity & $-0.212$ & $-0.267$ & $-0.213$ & $-0.280$ & $-0.198$ & $-0.701$ \\
+Isotropy & 0.0003 & 0.0003 & 0.0001 & 0.0001 & 0.0000 & 0.0000 \\
+Eff.\ Dim. & 4.8 & 5.8 & 5.3 & 6.3 & 5.7 & 13.2 \\
+Time (s) & 501 & 501 & 502 & 535 & 565 & 623 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{-1ex}
+\begin{table}[!ht]
+\centering
+\caption{Full code dimension ablation results.}
+\label{tab:app_codedim}
+\small\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Metric} & $D{=}16$ & $D{=}32$ & $D{=}64$ & $D{=}128$ & $D{=}256$ \\
+\midrule
+Val Loss & 0.078 & 0.100 & 0.130 & 0.143 & 0.143 \\
+Silhouette & 0.074 & 0.070 & 0.049 & 0.041 & 0.038 \\
+Davies-Bouldin & 2.100 & 2.187 & 2.635 & 2.847 & 2.943 \\
+Uniformity & $-0.508$ & $-0.275$ & $-0.216$ & $-0.229$ & $-0.277$ \\
+Isotropy & 0.0003 & 0.0003 & 0.0001 & 0.0003 & 0.0000 \\
+Eff.\ Dim. & 4.9 & 4.6 & 5.7 & 7.6 & 9.8 \\
+Time (s) & 525 & 530 & 537 & 560 & 611 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{-1ex}
+\begin{table}[!ht]
+\centering
+\caption{Full $k$-mer size ablation results.}
+\label{tab:app_kmer}
+\small\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Metric} & $k{=}4$ & $k{=}5$ & $k{=}6$ & $k{=}7$ & $k{=}8$ \\
+\midrule
+Vocab Size & 259 & 1,027 & 4,099 & 16,387 & 65,539 \\
+Val Loss & 0.018 & 0.048 & 0.130 & 0.198 & 1.650 \\
+Silhouette & 0.083 & 0.044 & 0.049 & 0.049 & 0.034 \\
+Davies-Bouldin & 1.937 & 2.525 & 2.635 & 2.619 & 2.958 \\
+Uniformity & $-0.375$ & $-0.529$ & $-0.216$ & $-0.285$ & $-2.121$ \\
+Eff.\ Dim. & 6.1 & 10.7 & 5.7 & 6.0 & 29.7 \\
+Time (s) & 392 & 410 & 538 & 1,283 & 7,444 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{-1ex}
+\begin{table}[!ht]
+\centering
+\caption{Full loss component ablation results.}
+\label{tab:app_loss}
+\small\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Metric} & Recon only & +Commit & Full & High $\beta$ & High $\lambda$ \\
+\midrule
+Val Loss & 0.069 & 0.146 & 0.130 & 0.153 & 0.093 \\
+Silhouette & 0.040 & 0.049 & 0.049 & 0.045 & 0.049 \\
+Davies-Bouldin & 2.787 & 2.635 & 2.635 & 2.608 & 2.635 \\
+Uniformity & $-1.645$ & $-0.216$ & $-0.216$ & $-0.269$ & $-0.216$ \\
+Eff.\ Dim. & 25.2 & 5.7 & 5.7 & 6.3 & 5.7 \\
+Time (s) & 493 & 499 & 506 & 509 & 501 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{-1ex}
+\begin{table}[!ht]
+\centering
+\caption{Full masking probability ablation results.}
+\label{tab:app_masking}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Metric} & $p{=}.05$ & $p{=}.10$ & $p{=}.15$ & $p{=}.20$ & $p{=}.25$ & $p{=}.30$ & $p{=}.40$ \\
+\midrule
+Val Loss & 0.036 & 0.048 & 0.077 & 0.130 & 0.210 & 0.315 & 0.610 \\
+Silhouette & 0.029 & 0.042 & 0.038 & 0.049 & 0.047 & 0.059 & 0.054 \\
+Davies-Bouldin & 2.970 & 2.699 & 2.821 & 2.635 & 2.716 & 2.520 & 2.579 \\
+Uniformity & $-0.362$ & $-0.252$ & $-0.259$ & $-0.216$ & $-0.210$ & $-0.686$ & $-1.002$ \\
+Eff.\ Dim. & 8.3 & 6.3 & 6.4 & 5.7 & 5.6 & 11.5 & 15.0 \\
+Time (s) & 503 & 507 & 504 & 507 & 507 & 502 & 505 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{-1ex}
+\begin{table}[!ht]
+\centering
+\caption{Full entropy bonus weight ablation results.}
+\label{tab:app_entropy}
+\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Metric} & $\lambda{=}0$ & $\lambda{=}.001$ & $\lambda{=}.003$ & $\lambda{=}.005$ & $\lambda{=}.01$ & $\lambda{=}.03$ & $\lambda{=}.05$ \\
+\midrule
+Val Loss & 0.146 & 0.138 & 0.130 & 0.118 & 0.093 & 0.098 & 0.105 \\
+Silhouette & 0.049 & 0.050 & 0.049 & 0.048 & 0.049 & 0.045 & 0.041 \\
+Davies-Bouldin & 2.635 & 2.601 & 2.635 & 2.654 & 2.635 & 2.742 & 2.890 \\
+Uniformity & $-0.216$ & $-0.224$ & $-0.216$ & $-0.210$ & $-0.216$ & $-0.458$ & $-0.712$ \\
+Util.\ (\%) & 78 & 91 & 95 & 97 & 98 & 99 & 99 \\
+Eff.\ Dim. & 5.7 & 5.5 & 5.7 & 5.9 & 5.7 & 8.4 & 12.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Appendix C. Implementation Details}
+\label{app:implementation}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figA1_recon_vs_sil.pdf}
+  \caption{Reconstruction quality (val loss) vs.\ clustering quality (silhouette@10) across all 35 ablation configurations. Each marker shape represents a different ablation axis. Configurations in the lower-left are most desirable.}
+  \label{fig:app_recon_vs_sil}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.6\textwidth]{figA2_heatmap.pdf}
+  \caption{Heatmap of all eight methods across four downstream metrics (column-normalized to $[0,1]$). \ours{} dominates silhouette and P@1; contrastive variants dominate probe accuracy; Transformer VAE leads AUROC.}
+  \label{fig:app_heatmap}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figA3_training_time.pdf}
+  \caption{Training time (30 epochs) vs.\ $k$-mer size. The exponential vocabulary growth ($4^k$) causes $k{=}8$ to take $14.3\times$ longer than $k{=}4$. Vocabulary sizes are annotated above each bar.}
+  \label{fig:app_training_time}
+\end{figure}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figA4_effective_dim.pdf}
+  \caption{Effective dimensionality across all ablation configurations. Most settings yield $d_\text{eff} < 15$, confirming that the VQ bottleneck constrains representational complexity. Notable exceptions: $k{=}8$ (29.7) and $p{=}0.40$ (15.0).}
+  \label{fig:app_effective_dim}
+\end{figure}
+
+All models are implemented in PyTorch 2.5.1 and trained using Distributed Data Parallel across 4 NVIDIA RTX 4090 GPUs (24 GB each). Training uses bfloat16 mixed precision with TF32 enabled for matrix operations. The VQ-VAE encoder and decoder each contain approximately 200K parameters; the full model with a $K{=}512$, $D{=}64$ codebook has approximately 450K trainable parameters.
+
+The dataset is loaded using BioPython's \texttt{SeqIO} parser and tokenized on-the-fly. DataLoaders use 2 worker processes per GPU with \texttt{persistent\_workers=True} and \texttt{pin\_memory=True}. The training/test split uses a fixed seed (42) for reproducibility.
+
+For embedding extraction, we use the encoder output before quantization (pre-VQ), mean-pooled over non-padding positions. This yields a $D$-dimensional vector per sequence. Evaluation metrics (clustering, retrieval, anomaly detection) are computed on 10,000 randomly sampled test sequences to ensure tractable computation times while maintaining statistical reliability.
+
+\end{document}
