@@ -20,19 +20,31 @@ targeted clinical sequencing, not a clinical decision tool itself.
 
 ## On the anomaly detection experimental design
 
-We agree and have now run the experiment the reviewer describes. **Appendix D
-(Tables D.1–D.2)** reports results from injecting Omicron reads at controlled rates
-(1%–50%) into a Wuhan baseline stream with explicit positive labels. AUROC is
-0.50 ± 0.02 across all rates and all models; AUPRC tracks the random baseline. This
-outcome is consistent with the biological constraint explained in the same appendix:
-with ~50 mutations across 30,000 bases, fewer than 25% of 150 bp reads span any
-variant-defining site, and those reads have only ~4% of their k-mer tokens altered.
-**§8 Implications and Limitations** now directs readers to Appendix D for the full
-empirical characterisation of these read-level limits. Critically, this result confirms
-rather than undermines the paper's contribution: the method is correctly scoped to
-population-level distributional shift (where many reads combine to give a detectable
-signal), not individual-read variant assignment (where the genomic biology makes
-detection impossible regardless of model architecture).
+We agree and have now run the experiment the reviewer describes. We injected Omicron
+reads at controlled rates (1%–50%) into a Wuhan baseline stream with explicit positive
+labels. A reference centroid was fit on held-out Wuhan reads; anomaly scores were L2
+distances to that centroid.
+
+**Table 1. Positive-control injection experiment (MaskedVQ-Seq; Contrastive variants
+show identical trends, AUROC 0.50 ± 0.02 across all rates).**
+
+| Injection rate | n injected | AUROC | AUPRC | TPR @ 5% FPR |
+|----------------|------------|-------|-------|--------------|
+| 1%             | 51         | 0.522 | 0.010 | 0.000        |
+| 5%             | 263        | 0.498 | 0.050 | 0.053        |
+| 10%            | 556        | 0.515 | 0.104 | 0.058        |
+| 20%            | 1,250      | 0.508 | 0.209 | 0.060        |
+| 50%            | 5,000      | 0.504 | 0.507 | 0.059        |
+
+AUROC is 0.50 ± 0.02 across all rates and all models; AUPRC tracks the random baseline.
+This outcome is consistent with a biological constraint: with ~50 mutations across
+30,000 bases, fewer than 25% of 150 bp reads span any variant-defining site, and those
+reads have only ~4% of their k-mer tokens altered. §8 Implications and Limitations makes
+this explicit. Critically, this result confirms rather than undermines the paper's
+contribution: the method is correctly scoped to population-level distributional shift
+(where many reads combine to give a detectable signal), not individual-read variant
+assignment (where the genomic biology makes detection impossible regardless of model
+architecture).
 
 ---
 
